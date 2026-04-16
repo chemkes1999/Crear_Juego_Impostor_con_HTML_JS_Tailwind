@@ -76,7 +76,7 @@ export default function SetupScreen() {
 
   return (
     <div className="mx-auto w-full max-w-5xl px-6 py-10">
-      <section className="relative overflow-hidden rounded-3xl border border-white/10 bg-white/5 p-6 sm:p-10">
+      <section className="panel relative overflow-hidden p-6 sm:p-10">
         <div
           aria-hidden
           className="pointer-events-none absolute inset-0 opacity-80 [background:radial-gradient(900px_circle_at_12%_18%,rgba(163,230,53,0.18),transparent_48%),radial-gradient(900px_circle_at_88%_28%,rgba(217,70,239,0.16),transparent_50%),radial-gradient(900px_circle_at_50%_115%,rgba(59,130,246,0.12),transparent_55%)]"
@@ -88,34 +88,33 @@ export default function SetupScreen() {
 
         <div className="relative flex items-start justify-between gap-4">
           <div className="min-w-0 max-w-2xl">
-            <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-black/25 px-3 py-1 text-xs font-semibold text-white/75">
+            <div className="badge">
               <Users className="h-4 w-4" />
               Misterio local
             </div>
             <h1
               className={cn(
-                "mt-4 text-balance font-black uppercase tracking-tight text-white",
+                "mt-4 font-display text-balance font-black uppercase tracking-tight text-fg",
                 "text-5xl sm:text-6xl md:text-7xl",
               )}
-              style={{ fontFamily: '"Bungee", system-ui, sans-serif' }}
             >
               IMPOSTOR
-              <span className="block text-lg font-bold tracking-normal text-white/65 sm:text-xl md:text-2xl">
+              <span className="block text-lg font-bold tracking-normal text-fg/65 sm:text-xl md:text-2xl">
                 Un misterio en cada ronda
               </span>
             </h1>
 
-            <div className="mt-5 grid gap-2 text-sm font-semibold text-white/75 sm:text-base">
+            <div className="mt-5 grid gap-2 text-sm font-semibold text-fg/75 sm:text-base">
               <div className="flex items-start gap-2">
-                <EyeOff className="mt-0.5 h-4 w-4 shrink-0 text-white/50" />
+                <EyeOff className="mt-0.5 h-4 w-4 shrink-0 text-fg/50" />
                 Pasa el dispositivo y no mires la pantalla.
               </div>
               <div className="flex items-start gap-2">
-                <Search className="mt-0.5 h-4 w-4 shrink-0 text-white/50" />
+                <Search className="mt-0.5 h-4 w-4 shrink-0 text-fg/50" />
                 Todos comparten una palabra… menos 1 impostor.
               </div>
               <div className="flex items-start gap-2">
-                <Users className="mt-0.5 h-4 w-4 shrink-0 text-white/50" />
+                <Users className="mt-0.5 h-4 w-4 shrink-0 text-fg/50" />
                 Voten, eliminen y descubran quién miente.
               </div>
             </div>
@@ -124,7 +123,7 @@ export default function SetupScreen() {
           <button
             type="button"
             onClick={toggleTheme}
-            className="mt-1 inline-flex items-center gap-2 rounded-xl border border-white/10 bg-black/25 px-3 py-2 text-sm font-semibold text-white/80 transition hover:bg-white/10"
+            className="btn mt-1 rounded-xl px-3 py-2 text-sm font-semibold tracking-normal"
           >
             {isDark ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
             {isDark ? "Oscuro" : "Claro"}
@@ -133,24 +132,26 @@ export default function SetupScreen() {
       </section>
 
       <div className="mt-10 grid gap-6 lg:grid-cols-3">
-        <section className="rounded-2xl border border-white/10 bg-white/5 p-5">
-          <h2 className="text-sm font-bold uppercase tracking-wide text-white/80">Jugadores</h2>
+        <section className="panel panel-sm panel-pad-sm">
+          <h2 className="text-sm font-bold uppercase tracking-wide text-fg/80">Jugadores</h2>
 
           <div className="mt-4 flex items-center justify-between gap-4">
-            <label className="text-sm text-white/70">Cantidad</label>
+            <label className="text-sm text-fg/70">Cantidad</label>
             <div className="flex items-center gap-2">
               <button
                 type="button"
                 onClick={() => setPlayerCount(players.length - 1)}
-                className="h-10 w-10 rounded-xl border border-white/10 bg-white/5 text-lg font-bold text-white/80 transition hover:bg-white/10"
+                aria-label="Reducir jugadores"
+                className="btn h-10 w-10 rounded-xl p-0 text-lg font-bold tracking-normal"
               >
                 −
               </button>
-              <div className="w-14 text-center text-2xl font-black text-white">{players.length}</div>
+              <div className="w-14 text-center text-2xl font-black text-fg">{players.length}</div>
               <button
                 type="button"
                 onClick={() => setPlayerCount(players.length + 1)}
-                className="h-10 w-10 rounded-xl border border-white/10 bg-white/5 text-lg font-bold text-white/80 transition hover:bg-white/10"
+                aria-label="Aumentar jugadores"
+                className="btn h-10 w-10 rounded-xl p-0 text-lg font-bold tracking-normal"
               >
                 +
               </button>
@@ -160,32 +161,38 @@ export default function SetupScreen() {
           <div className="mt-4 grid gap-2">
             {players.map((p, idx) => (
               <div key={p.id} className="flex items-center gap-2">
-                <div className="w-20 shrink-0 text-xs font-semibold text-white/50">Jugador {idx + 1}</div>
+                <label htmlFor={`player-${p.id}`} className="w-20 shrink-0 text-xs font-semibold text-fg/55">
+                  Jugador {idx + 1}
+                </label>
                 <input
+                  id={`player-${p.id}`}
+                  name={`player-${idx + 1}`}
                   value={p.name}
                   onChange={(e) => setPlayerName(idx, e.target.value)}
-                  className="h-10 w-full rounded-xl border border-white/10 bg-black/40 px-3 text-sm text-white placeholder:text-white/30 outline-none focus:border-lime-300/40"
+                  className="input"
                   placeholder={`Jugador ${idx + 1}`}
                   inputMode="text"
+                  autoComplete="off"
+                  spellCheck={false}
                 />
               </div>
             ))}
           </div>
         </section>
 
-        <section className="rounded-2xl border border-white/10 bg-white/5 p-5">
-          <h2 className="text-sm font-bold uppercase tracking-wide text-white/80">Palabras</h2>
+        <section className="panel panel-sm panel-pad-sm">
+          <h2 className="text-sm font-bold uppercase tracking-wide text-fg/80">Palabras</h2>
 
           <div className="mt-4">
-            <div className="text-sm font-semibold text-white/70">Categorías</div>
+            <div className="text-sm font-semibold text-fg/70">Categorías</div>
             <div className="mt-2">
               <CategoryPicker selected={categories} onToggle={toggleCategory} />
             </div>
-            <p className="mt-3 text-xs text-white/50">Si apagas todas, se usan todas automáticamente.</p>
+            <p className="mt-3 text-xs text-fg/55">Si apagas todas, se usan todas automáticamente.</p>
           </div>
 
           <div className="mt-6">
-            <div className="text-sm font-semibold text-white/70">Dificultad</div>
+            <div className="text-sm font-semibold text-fg/70">Dificultad</div>
             <div className="mt-2 flex gap-2">
               <button
                 type="button"
@@ -193,8 +200,8 @@ export default function SetupScreen() {
                 className={cn(
                   "flex-1 rounded-xl border px-3 py-2 text-sm font-semibold transition",
                   difficulty === "basic"
-                    ? "border-fuchsia-300/40 bg-fuchsia-300/10 text-fuchsia-200"
-                    : "border-white/10 bg-white/5 text-white/70 hover:bg-white/10",
+                    ? "border-accent2/35 bg-accent2/15 text-fg"
+                    : "border-border/12 bg-surface/5 text-fg/70 hover:bg-surface/10",
                 )}
               >
                 Básica
@@ -205,8 +212,8 @@ export default function SetupScreen() {
                 className={cn(
                   "flex-1 rounded-xl border px-3 py-2 text-sm font-semibold transition",
                   difficulty === "extended"
-                    ? "border-fuchsia-300/40 bg-fuchsia-300/10 text-fuchsia-200"
-                    : "border-white/10 bg-white/5 text-white/70 hover:bg-white/10",
+                    ? "border-accent2/35 bg-accent2/15 text-fg"
+                    : "border-border/12 bg-surface/5 text-fg/70 hover:bg-surface/10",
                 )}
               >
                 Extendida
@@ -215,13 +222,13 @@ export default function SetupScreen() {
           </div>
         </section>
 
-        <section className="rounded-2xl border border-white/10 bg-white/5 p-5">
-          <h2 className="text-sm font-bold uppercase tracking-wide text-white/80">Seguridad</h2>
+        <section className="panel panel-sm panel-pad-sm">
+          <h2 className="text-sm font-bold uppercase tracking-wide text-fg/80">Seguridad</h2>
 
           <div className="mt-4 flex items-center justify-between gap-4">
             <div>
-              <div className="text-sm font-semibold text-white/70">Auto-ocultar palabra</div>
-              <div className="text-xs text-white/50">Ideal para que nadie se quede mirando.</div>
+              <div className="text-sm font-semibold text-fg/70">Auto-ocultar palabra</div>
+              <div className="text-xs text-fg/55">Ideal para que nadie se quede mirando.</div>
             </div>
             <button
               type="button"
@@ -229,8 +236,8 @@ export default function SetupScreen() {
               className={cn(
                 "h-10 rounded-xl border px-3 text-sm font-bold transition",
                 reveal.autoHide
-                  ? "border-lime-300/40 bg-lime-300/15 text-lime-200"
-                  : "border-white/10 bg-white/5 text-white/70 hover:bg-white/10",
+                  ? "border-accent/35 bg-accent/15 text-fg"
+                  : "border-border/12 bg-surface/5 text-fg/70 hover:bg-surface/10",
               )}
             >
               {reveal.autoHide ? "ON" : "OFF"}
@@ -250,7 +257,7 @@ export default function SetupScreen() {
           </div>
 
           <div className="mt-6">
-            <div className="text-sm font-semibold text-white/70">Discusión</div>
+            <div className="text-sm font-semibold text-fg/70">Discusión</div>
             <div className="mt-3">
               <DurationSlider
                 label="Duración"
@@ -267,7 +274,7 @@ export default function SetupScreen() {
           <button
             type="button"
             onClick={startGame}
-            className="mt-6 w-full rounded-2xl border border-lime-300/30 bg-gradient-to-b from-lime-300/25 to-lime-300/10 px-4 py-4 text-base font-black uppercase tracking-wide text-lime-100 shadow-[0_0_0_1px_rgba(163,230,53,0.15),0_25px_80px_-40px_rgba(163,230,53,0.65)] transition hover:from-lime-300/30 hover:to-lime-300/15"
+            className="btn btn-primary mt-6 w-full rounded-2xl px-4 py-4 text-base shadow-[0_0_0_1px_rgb(var(--accent)_/_0.15),0_25px_80px_-40px_rgb(var(--accent)_/_0.55)]"
           >
             Empezar ronda
           </button>

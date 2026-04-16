@@ -21,8 +21,8 @@ export default function CategoryPicker(props: {
             className={cn(
               "rounded-full border px-3 py-1 text-sm font-medium transition",
               isOn
-                ? "border-lime-300/40 bg-lime-300/10 text-lime-200 hover:bg-lime-300/15"
-                : "border-white/10 bg-white/5 text-white/70 hover:bg-white/10",
+                ? "border-accent/35 bg-accent/15 text-fg hover:bg-accent/20"
+                : "border-border/12 bg-surface/5 text-fg/70 hover:bg-surface/10",
             )}
           >
             {cat}

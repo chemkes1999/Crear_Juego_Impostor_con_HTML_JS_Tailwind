@@ -1,6 +1,5 @@
 import { ArrowRight, Scale, UserX } from "lucide-react"
 import { useEffect, useMemo, useRef } from "react"
-import { cn } from "@/lib/utils"
 import { playSfx } from "@/lib/sfx"
 import { TenebrousEyes, VictoryStar } from "@/components/game/MysterySigils"
 import { useGameStore } from "@/store/gameStore"
@@ -13,10 +12,7 @@ export default function EliminationScreen() {
 
   const byId = useMemo(() => new Map(players.map((p) => [p.id, p])), [players])
   const lastDeathId = useRef<string | null>(null)
-
-  if (!elimination) return null
-
-  const eliminatedId = elimination.type === "player" ? elimination.playerId : null
+  const eliminatedId = elimination?.type === "player" ? elimination.playerId : null
 
   useEffect(() => {
     if (!eliminatedId) return
@@ -24,6 +20,8 @@ export default function EliminationScreen() {
     lastDeathId.current = eliminatedId
     playSfx("death")
   }, [eliminatedId])
+
+  if (!elimination) return null
 
   return (
     <div className="relative mx-auto flex min-h-[100svh] w-full max-w-6xl flex-col overflow-hidden px-6 py-10">
@@ -34,18 +32,18 @@ export default function EliminationScreen() {
 
       <div className="relative mx-auto w-full max-w-5xl">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="text-xs font-semibold uppercase tracking-[0.22em] text-white/55">Ronda {roundNumber} • Resultado</div>
-          <div className={cn("inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-semibold", "border-white/10 bg-white/5 text-white/70")}>
+          <div className="text-xs font-semibold uppercase tracking-[0.22em] text-fg/60">Ronda {roundNumber} • Resultado</div>
+          <div className="badge">
             {elimination.type === "tie" ? <Scale className="h-4 w-4" /> : <UserX className="h-4 w-4" />}
             {elimination.type === "tie" ? "Empate" : "Expulsión"}
           </div>
         </div>
 
         <div className="mt-5">
-          <div className="among-title text-balance text-5xl font-black uppercase leading-[0.9] sm:text-7xl" style={{ fontFamily: '"Bungee", system-ui, sans-serif' }}>
+          <div className="among-title font-display text-balance text-5xl font-black uppercase leading-[0.9] text-fg sm:text-7xl">
             {elimination.type === "tie" ? "No se va nadie" : "Expulsado"}
           </div>
-          <div className="mt-3 text-sm font-semibold text-white/70 sm:text-base">
+          <div className="mt-3 text-sm font-semibold text-fg/75 sm:text-base">
             {elimination.type === "tie" ? (
               <span>Se repite la votación solo entre los empatados.</span>
             ) : elimination.wasImpostor ? (
@@ -64,16 +62,16 @@ export default function EliminationScreen() {
             </div>
           </div>
 
-          <div className="among-panel rounded-[28px] border border-white/10 bg-white/5 p-6 sm:p-8">
+          <div className="among-panel rounded-[28px] border border-border/12 bg-surface/5 p-6 sm:p-8">
             {elimination.type === "tie" ? (
               <div>
-                <div className="text-xs font-bold uppercase tracking-wide text-white/50">Empatados</div>
+                <div className="text-xs font-bold uppercase tracking-wide text-fg/60">Empatados</div>
                 <div className="mt-4 flex flex-wrap gap-2">
                   {elimination.playerIds.map((id) => {
                     const p = byId.get(id)
                     if (!p) return null
                     return (
-                      <div key={id} className="rounded-full border border-white/10 bg-black/35 px-3 py-1 text-xs font-semibold text-white/75">
+                      <div key={id} className="chip">
                         {p.name}
                       </div>
                     )
@@ -83,7 +81,7 @@ export default function EliminationScreen() {
                 <button
                   type="button"
                   onClick={continueAfterElimination}
-                  className="mt-8 inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-lime-300/30 bg-lime-300/15 px-6 py-4 text-base font-black uppercase tracking-wide text-lime-100 transition hover:bg-lime-300/20"
+                  className="btn btn-primary mt-8 w-full px-6 py-4 text-base"
                 >
                   Re-votar
                   <ArrowRight className="h-5 w-5" />
@@ -91,16 +89,16 @@ export default function EliminationScreen() {
               </div>
             ) : (
               <div>
-                <div className="text-xs font-bold uppercase tracking-wide text-white/50">Jugador</div>
-                <div className="mt-2 text-3xl font-black text-white" style={{ fontFamily: '"Bungee", system-ui, sans-serif' }}>
+                <div className="text-xs font-bold uppercase tracking-wide text-fg/60">Jugador</div>
+                <div className="mt-2 font-display text-3xl font-black text-fg">
                   {byId.get(elimination.playerId)?.name ?? "Jugador"}
                 </div>
-                <div className="mt-3 text-sm text-white/60">Siguiente ronda: discutan de nuevo y vuelvan a votar.</div>
+                <div className="mt-3 text-sm text-fg/65">Siguiente ronda: discutan de nuevo y vuelvan a votar.</div>
 
                 <button
                   type="button"
                   onClick={continueAfterElimination}
-                  className="mt-8 inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/5 px-6 py-4 text-base font-black uppercase tracking-wide text-white/80 transition hover:bg-white/10"
+                  className="btn mt-8 w-full px-6 py-4 text-base"
                 >
                   Siguiente ronda
                   <ArrowRight className="h-5 w-5" />

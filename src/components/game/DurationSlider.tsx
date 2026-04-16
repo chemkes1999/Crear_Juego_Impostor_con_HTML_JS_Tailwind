@@ -27,8 +27,8 @@ export default function DurationSlider(props: {
   return (
     <div className="grid gap-2">
       <div className="flex items-center justify-between gap-3">
-        <div className="text-sm font-semibold text-white/70">{label}</div>
-        <div className="inline-flex items-center rounded-full border border-white/10 bg-black/40 px-3 py-1 text-sm font-black text-white">
+        <div className="text-sm font-semibold text-fg/70">{label}</div>
+        <div className="chip text-sm font-black text-fg">
           {displayValue}
         </div>
       </div>
@@ -44,13 +44,13 @@ export default function DurationSlider(props: {
           onChange(next)
         }}
         className={cn(
-          "h-2 w-full cursor-pointer appearance-none rounded-full bg-white/10 outline-none",
-          "[&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:shadow-[0_0_0_6px_rgba(163,230,53,0.18)]",
-          "[&::-moz-range-thumb]:h-5 [&::-moz-range-thumb]:w-5 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-0 [&::-moz-range-thumb]:bg-white [&::-moz-range-thumb]:shadow-[0_0_0_6px_rgba(163,230,53,0.18)]",
+          "h-2 w-full cursor-pointer appearance-none rounded-full bg-surface/10 outline-none focus-visible:shadow-[0_0_0_2px_rgb(var(--accent)_/_0.4)]",
+          "[&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-fg [&::-webkit-slider-thumb]:shadow-[0_0_0_6px_rgb(var(--accent)_/_0.18)]",
+          "[&::-moz-range-thumb]:h-5 [&::-moz-range-thumb]:w-5 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-0 [&::-moz-range-thumb]:bg-fg [&::-moz-range-thumb]:shadow-[0_0_0_6px_rgb(var(--accent)_/_0.18)]",
         )}
       />
 
-      <div className="flex items-center justify-between text-xs font-semibold text-white/40">
+      <div className="flex items-center justify-between text-xs font-semibold text-fg/50">
         <div>{leftLabel}</div>
         <div>{rightLabel}</div>
       </div>

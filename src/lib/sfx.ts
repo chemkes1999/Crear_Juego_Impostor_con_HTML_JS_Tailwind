@@ -294,5 +294,7 @@ export function playSfx(name: SfxName) {
     if (name === "victory") playVictory(a.ctx, a.master)
     if (name === "impostorWin") playImpostorWin(a.ctx, a.master)
     if (name === "death") playDeath(a.ctx, a.master)
-  } catch {}
+  } catch (err) {
+    if (import.meta.env.DEV) console.error(err)
+  }
 }

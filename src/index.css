@@ -9,6 +9,16 @@
     "Segoe UI Emoji";
   line-height: 1.5;
   font-weight: 400;
+  --bg: 6 6 14;
+  --fg: 255 255 255;
+  --muted: 203 213 225;
+  --border: 255 255 255;
+  --surface: 255 255 255;
+  --surface2: 0 0 0;
+  --accent: 163 230 53;
+  --accent2: 217 70 239;
+  --danger: 244 63 94;
+  --ink: 0 0 0;
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -16,10 +26,216 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+html.dark {
+  color-scheme: dark;
+  --bg: 6 6 14;
+  --fg: 255 255 255;
+  --muted: 203 213 225;
+  --border: 255 255 255;
+  --surface: 255 255 255;
+  --surface2: 0 0 0;
+  --accent: 163 230 53;
+  --accent2: 217 70 239;
+  --danger: 244 63 94;
+  --ink: 0 0 0;
+}
+
+html.light {
+  color-scheme: light;
+  --bg: 250 249 245;
+  --fg: 20 20 19;
+  --muted: 78 78 74;
+  --border: 20 20 19;
+  --surface: 255 255 255;
+  --surface2: 250 249 245;
+  --accent: 120 140 93;
+  --accent2: 92 76 171;
+  --danger: 181 45 74;
+  --ink: 0 0 0;
+}
+
 html,
 body,
 #root {
   height: 100%;
+}
+
+html,
+body {
+  background: rgb(var(--bg));
+  color: rgb(var(--fg));
+}
+
+::selection {
+  background: rgb(var(--accent) / 0.35);
+}
+
+@layer components {
+  .game-root {
+    @apply relative min-h-[100svh] overflow-hidden bg-bg text-fg;
+  }
+
+  .game-aurora {
+    @apply pointer-events-none absolute inset-0;
+    background:
+      radial-gradient(1200px circle at 15% 10%, rgb(var(--accent) / 0.18), transparent 45%),
+      radial-gradient(900px circle at 85% 20%, rgb(var(--accent2) / 0.18), transparent 40%),
+      radial-gradient(1200px circle at 60% 110%, rgb(59 130 246 / 0.12), transparent 45%);
+  }
+
+  html.light .game-aurora {
+    background:
+      radial-gradient(1200px circle at 15% 10%, rgb(var(--accent) / 0.18), transparent 45%),
+      radial-gradient(900px circle at 85% 20%, rgb(var(--accent2) / 0.12), transparent 40%),
+      radial-gradient(1200px circle at 60% 110%, rgb(14 165 233 / 0.1), transparent 45%);
+  }
+
+  .game-grid {
+    @apply pointer-events-none absolute inset-0 mix-blend-overlay;
+    opacity: 0.35;
+    background-image: linear-gradient(rgb(var(--fg) / 0.08) 1px, transparent 1px),
+      linear-gradient(90deg, rgb(var(--fg) / 0.06) 1px, transparent 1px);
+    background-size: 32px 32px;
+  }
+
+  html.light .game-grid {
+    opacity: 0.22;
+    mix-blend-mode: multiply;
+  }
+
+  .panel {
+    @apply rounded-3xl border bg-surface/5 backdrop-blur-xl;
+    border-color: rgb(var(--border) / 0.12);
+    box-shadow: 0 0 0 1px rgb(var(--ink) / 0.22) inset, 0 40px 140px -110px rgb(var(--ink) / 0.9);
+  }
+
+  html.light .panel {
+    border-color: rgb(var(--border) / 0.12);
+    background: rgb(var(--surface) / 0.7);
+    box-shadow: 0 0 0 1px rgb(var(--ink) / 0.06) inset, 0 36px 90px -70px rgb(var(--ink) / 0.22);
+  }
+
+  .panel-sm {
+    @apply rounded-2xl;
+  }
+
+  .panel-pad {
+    @apply p-6 sm:p-8;
+  }
+
+  .panel-pad-sm {
+    @apply p-5;
+  }
+
+  .badge {
+    @apply inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-semibold;
+    border-color: rgb(var(--border) / 0.12);
+    background: rgb(var(--surface2) / 0.3);
+    color: rgb(var(--fg) / 0.75);
+  }
+
+  html.light .badge {
+    background: rgb(var(--surface2) / 0.7);
+    color: rgb(var(--fg) / 0.78);
+  }
+
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-2xl border px-5 py-3 text-sm font-black uppercase tracking-wide transition;
+    border-color: rgb(var(--border) / 0.14);
+    background: rgb(var(--surface) / 0.05);
+    color: rgb(var(--fg) / 0.8);
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .btn:disabled {
+    opacity: 0.55;
+  }
+
+  .btn:hover {
+    background: rgb(var(--surface) / 0.08);
+  }
+
+  .btn:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 2px rgb(var(--accent) / 0.45);
+  }
+
+  html.light .btn {
+    background: rgb(var(--surface) / 0.65);
+    border-color: rgb(var(--border) / 0.12);
+    color: rgb(var(--fg) / 0.85);
+  }
+
+  html.light .btn:hover {
+    background: rgb(var(--surface) / 0.75);
+  }
+
+  .btn-primary {
+    border-color: rgb(var(--accent) / 0.35);
+    background: rgb(var(--accent) / 0.15);
+    color: rgb(var(--fg) / 0.95);
+  }
+
+  .btn-primary:hover {
+    background: rgb(var(--accent) / 0.2);
+  }
+
+  html.light .btn-primary {
+    color: rgb(var(--fg) / 0.92);
+    background: rgb(var(--accent) / 0.18);
+  }
+
+  .btn-danger {
+    border-color: rgb(var(--danger) / 0.35);
+    background: rgb(var(--danger) / 0.14);
+    color: rgb(var(--fg) / 0.95);
+  }
+
+  .btn-danger:hover {
+    background: rgb(var(--danger) / 0.18);
+  }
+
+  .btn-accent2 {
+    border-color: rgb(var(--accent2) / 0.35);
+    background: rgb(var(--accent2) / 0.14);
+    color: rgb(var(--fg) / 0.95);
+  }
+
+  .btn-accent2:hover {
+    background: rgb(var(--accent2) / 0.18);
+  }
+
+  .chip {
+    @apply inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold;
+    border-color: rgb(var(--border) / 0.12);
+    background: rgb(var(--surface2) / 0.35);
+    color: rgb(var(--fg) / 0.72);
+  }
+
+  html.light .chip {
+    background: rgb(var(--surface2) / 0.8);
+  }
+
+  .input {
+    @apply h-10 w-full rounded-xl border px-3 text-sm outline-none;
+    border-color: rgb(var(--border) / 0.14);
+    background: rgb(var(--surface2) / 0.35);
+    color: rgb(var(--fg) / 0.92);
+  }
+
+  .input::placeholder {
+    color: rgb(var(--fg) / 0.35);
+  }
+
+  .input:focus-visible {
+    border-color: rgb(var(--accent) / 0.5);
+    box-shadow: 0 0 0 2px rgb(var(--accent) / 0.22);
+  }
+
+  html.light .input {
+    background: rgb(var(--surface2) / 0.85);
+  }
 }
 
 @keyframes intro-eye-float {
@@ -579,6 +795,40 @@ body,
     radial-gradient(900px circle at 82% 34%, rgba(14, 165, 233, 0.08), transparent 62%),
     radial-gradient(1200px circle at 55% 120%, rgba(244, 63, 94, 0.06), transparent 64%),
     linear-gradient(180deg, rgba(6, 6, 14, 0.95), rgba(0, 0, 0, 0.98));
+}
+
+html.light .among-space,
+html.light .among-space-win,
+html.light .among-space-lose,
+html.light .among-space-elim {
+  background:
+    radial-gradient(1100px circle at 10% 15%, rgb(var(--accent2) / 0.14), transparent 54%),
+    radial-gradient(1000px circle at 85% 20%, rgb(var(--accent) / 0.12), transparent 56%),
+    radial-gradient(1200px circle at 50% 110%, rgb(14 165 233 / 0.1), transparent 60%),
+    linear-gradient(180deg, rgb(var(--bg) / 0.96), rgb(var(--bg) / 0.9));
+}
+
+html.light .among-stars {
+  opacity: 0.35;
+  mix-blend-mode: multiply;
+}
+
+html.light .among-vignette {
+  background: radial-gradient(1100px circle at 50% 40%, rgb(var(--bg) / 0), rgb(var(--ink) / 0.12) 70%, rgb(var(--ink) / 0.18));
+}
+
+html.light .among-scanlines {
+  mix-blend-mode: multiply;
+  background:
+    repeating-linear-gradient(
+      0deg,
+      rgb(var(--ink) / 0.06) 0 1px,
+      rgb(var(--ink) / 0) 1px 6px
+    );
+}
+
+html.light .among-title {
+  text-shadow: 0 1px 0 rgb(var(--bg) / 0.7), 0 18px 50px rgb(var(--ink) / 0.18);
 }
 
 .among-stars {
