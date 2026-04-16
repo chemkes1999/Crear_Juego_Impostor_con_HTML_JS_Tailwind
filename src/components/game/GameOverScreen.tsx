@@ -29,7 +29,12 @@ export default function GameOverScreen() {
   if (!gameOver) return null
 
   return (
-    <div className="relative mx-auto flex min-h-[100svh] w-full max-w-6xl flex-col overflow-hidden px-6 py-10">
+    <div
+      className={cn(
+        "relative mx-auto flex min-h-[100svh] w-full max-w-6xl flex-col overflow-hidden px-6 py-10",
+        isCivilians ? "among-gameover-win" : "among-gameover-lose",
+      )}
+    >
       <div aria-hidden className={cn("among-space pointer-events-none absolute inset-0", isCivilians ? "among-space-win" : "among-space-lose")} />
       <div aria-hidden className="among-stars pointer-events-none absolute inset-0" />
       <div aria-hidden className="among-vignette pointer-events-none absolute inset-0" />
