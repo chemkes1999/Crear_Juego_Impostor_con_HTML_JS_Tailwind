@@ -11,6 +11,30 @@ function formatClock(secondsTotal: number) {
   return `${minutes}:${seconds}`
 }
 
+function IntroEyes() {
+  return (
+    <div
+      aria-hidden
+      className="pointer-events-none absolute -right-6 top-1/2 flex -translate-y-1/2 items-center gap-5 opacity-90 sm:-right-10 sm:gap-7"
+    >
+      <div className="intro-eye intro-eye-left">
+        <div className="intro-iris">
+          <div className="intro-pupil" />
+          <div className="intro-shine" />
+        </div>
+        <div className="intro-eye-lid" />
+      </div>
+      <div className="intro-eye intro-eye-right">
+        <div className="intro-iris">
+          <div className="intro-pupil" />
+          <div className="intro-shine" />
+        </div>
+        <div className="intro-eye-lid" />
+      </div>
+    </div>
+  )
+}
+
 export default function SetupScreen() {
   const { isDark, toggleTheme } = useTheme()
 
@@ -30,50 +54,59 @@ export default function SetupScreen() {
 
   return (
     <div className="mx-auto w-full max-w-5xl px-6 py-10">
-      <div className="flex items-start justify-between gap-4">
-        <div className="min-w-0">
-          <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-semibold text-white/70">
-            <Users className="h-4 w-4" />
-            Misterio local
+      <section className="relative overflow-hidden rounded-3xl border border-white/10 bg-white/5 p-6 sm:p-10">
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 opacity-80 [background:radial-gradient(900px_circle_at_12%_18%,rgba(163,230,53,0.18),transparent_48%),radial-gradient(900px_circle_at_88%_28%,rgba(217,70,239,0.16),transparent_50%),radial-gradient(900px_circle_at_50%_115%,rgba(59,130,246,0.12),transparent_55%)]"
+        />
+        <div aria-hidden className="intro-hero-noise pointer-events-none absolute inset-0" />
+        <IntroEyes />
+
+        <div className="relative flex items-start justify-between gap-4">
+          <div className="min-w-0 max-w-2xl">
+            <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-black/25 px-3 py-1 text-xs font-semibold text-white/75">
+              <Users className="h-4 w-4" />
+              Misterio local
+            </div>
+            <h1
+              className={cn(
+                "mt-4 text-balance font-black uppercase tracking-tight text-white",
+                "text-5xl sm:text-6xl md:text-7xl",
+              )}
+              style={{ fontFamily: '"Bungee", system-ui, sans-serif' }}
+            >
+              IMPOSTOR
+              <span className="block text-lg font-bold tracking-normal text-white/65 sm:text-xl md:text-2xl">
+                Un misterio en cada ronda
+              </span>
+            </h1>
+
+            <div className="mt-5 grid gap-2 text-sm font-semibold text-white/75 sm:text-base">
+              <div className="flex items-start gap-2">
+                <EyeOff className="mt-0.5 h-4 w-4 shrink-0 text-white/50" />
+                Pasa el dispositivo y no mires la pantalla.
+              </div>
+              <div className="flex items-start gap-2">
+                <Search className="mt-0.5 h-4 w-4 shrink-0 text-white/50" />
+                Todos comparten una palabra… menos 1 impostor.
+              </div>
+              <div className="flex items-start gap-2">
+                <Users className="mt-0.5 h-4 w-4 shrink-0 text-white/50" />
+                Voten, eliminen y descubran quién miente.
+              </div>
+            </div>
           </div>
-          <h1
-            className={cn(
-              "mt-4 text-balance font-black uppercase tracking-tight text-white",
-              "text-5xl sm:text-6xl md:text-7xl",
-            )}
-            style={{ fontFamily: '"Bungee", system-ui, sans-serif' }}
+
+          <button
+            type="button"
+            onClick={toggleTheme}
+            className="mt-1 inline-flex items-center gap-2 rounded-xl border border-white/10 bg-black/25 px-3 py-2 text-sm font-semibold text-white/80 transition hover:bg-white/10"
           >
-            IMPOSTOR
-            <span className="block text-lg font-bold tracking-normal text-white/65 sm:text-xl md:text-2xl">
-              Un misterio en cada ronda
-            </span>
-          </h1>
-
-          <div className="mt-5 grid max-w-2xl gap-2 text-sm font-semibold text-white/70 sm:text-base">
-            <div className="flex items-start gap-2">
-              <EyeOff className="mt-0.5 h-4 w-4 shrink-0 text-white/50" />
-              Pasa el dispositivo y no mires la pantalla.
-            </div>
-            <div className="flex items-start gap-2">
-              <Search className="mt-0.5 h-4 w-4 shrink-0 text-white/50" />
-              Todos comparten una palabra… menos 1 impostor.
-            </div>
-            <div className="flex items-start gap-2">
-              <Users className="mt-0.5 h-4 w-4 shrink-0 text-white/50" />
-              Voten, eliminen y descubran quién miente.
-            </div>
-          </div>
+            {isDark ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
+            {isDark ? "Oscuro" : "Claro"}
+          </button>
         </div>
-
-        <button
-          type="button"
-          onClick={toggleTheme}
-          className="mt-1 inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm font-semibold text-white/80 transition hover:bg-white/10"
-        >
-          {isDark ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
-          {isDark ? "Oscuro" : "Claro"}
-        </button>
-      </div>
+      </section>
 
       <div className="mt-10 grid gap-6 lg:grid-cols-3">
         <section className="rounded-2xl border border-white/10 bg-white/5 p-5">
