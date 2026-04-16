@@ -1,8 +1,8 @@
 import { ArrowRight, Scale, UserX } from "lucide-react"
 import { useEffect, useMemo, useRef } from "react"
-import Crewmate from "@/components/game/Crewmate"
 import { cn } from "@/lib/utils"
 import { playSfx } from "@/lib/sfx"
+import { TenebrousEyes, VictoryStar } from "@/components/game/MysterySigils"
 import { useGameStore } from "@/store/gameStore"
 
 export default function EliminationScreen() {
@@ -60,10 +60,7 @@ export default function EliminationScreen() {
           <div className="relative mx-auto w-full max-w-[360px]">
             <div aria-hidden className="among-figure-glow among-figure-glow-elim absolute inset-0" />
             <div className="relative mx-auto flex w-full items-center justify-center">
-              <Crewmate
-                variant={elimination.type === "player" && elimination.wasImpostor ? "impostor" : "civilians"}
-                className="among-crewmate-elim"
-              />
+              {elimination.type === "tie" ? <VictoryStar className="victory-star-elim" /> : <TenebrousEyes className="mystery-eyes-elim" />}
             </div>
           </div>
 

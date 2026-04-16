@@ -2,7 +2,7 @@ import { Crown, Skull, RefreshCw, Settings } from "lucide-react"
 import { useEffect, useMemo, useRef } from "react"
 import { cn } from "@/lib/utils"
 import { playSfx } from "@/lib/sfx"
-import Crewmate from "@/components/game/Crewmate"
+import { TenebrousEyes, VictoryStar } from "@/components/game/MysterySigils"
 import { useGameStore } from "@/store/gameStore"
 
 export default function GameOverScreen() {
@@ -68,7 +68,7 @@ export default function GameOverScreen() {
           <div className={cn("among-figure relative mx-auto w-full max-w-[420px]", isCivilians ? "among-figure-win" : "among-figure-lose")}>
             <div aria-hidden className={cn("among-figure-glow absolute inset-0", isCivilians ? "among-figure-glow-win" : "among-figure-glow-lose")} />
             <div className="relative mx-auto flex w-full items-center justify-center">
-              <Crewmate variant={gameOver.winner} />
+              {isCivilians ? <VictoryStar /> : <TenebrousEyes />}
             </div>
           </div>
 
