@@ -27,7 +27,7 @@ function IntroEyes() {
   return (
     <div
       aria-hidden
-      className="pointer-events-none absolute -right-6 top-1/2 flex -translate-y-1/2 items-center gap-5 opacity-90 sm:-right-10 sm:gap-7"
+      className="pointer-events-none absolute -right-16 top-1/2 flex -translate-y-1/2 scale-[0.78] items-center gap-5 opacity-75 sm:-right-10 sm:scale-100 sm:gap-7 sm:opacity-90"
     >
       <IntroEye className="intro-eye-left" />
       <IntroEye className="intro-eye-right" />
@@ -198,7 +198,7 @@ export default function SetupScreen() {
                 type="button"
                 onClick={() => setDifficulty("basic")}
                 className={cn(
-                  "flex-1 rounded-xl border px-3 py-2 text-sm font-semibold transition",
+                  "flex-1 min-h-11 rounded-xl border px-3 py-2 text-sm font-semibold transition",
                   difficulty === "basic"
                     ? "border-accent2/35 bg-accent2/15 text-fg"
                     : "border-border/12 bg-surface/5 text-fg/70 hover:bg-surface/10",
@@ -210,7 +210,7 @@ export default function SetupScreen() {
                 type="button"
                 onClick={() => setDifficulty("extended")}
                 className={cn(
-                  "flex-1 rounded-xl border px-3 py-2 text-sm font-semibold transition",
+                  "flex-1 min-h-11 rounded-xl border px-3 py-2 text-sm font-semibold transition",
                   difficulty === "extended"
                     ? "border-accent2/35 bg-accent2/15 text-fg"
                     : "border-border/12 bg-surface/5 text-fg/70 hover:bg-surface/10",
