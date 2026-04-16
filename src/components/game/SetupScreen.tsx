@@ -75,7 +75,7 @@ export default function SetupScreen() {
   const startGame = useGameStore((s) => s.startGame)
 
   return (
-    <div className="mx-auto w-full max-w-5xl px-6 py-10">
+    <div className="screen max-w-5xl">
       <section className="panel relative overflow-hidden p-6 sm:p-10">
         <div
           aria-hidden
@@ -95,11 +95,11 @@ export default function SetupScreen() {
             <h1
               className={cn(
                 "mt-4 font-display text-balance font-black uppercase tracking-tight text-fg",
-                "text-5xl sm:text-6xl md:text-7xl",
+                "text-[clamp(2.75rem,12vw,5.25rem)]",
               )}
             >
               IMPOSTOR
-              <span className="block text-lg font-bold tracking-normal text-fg/65 sm:text-xl md:text-2xl">
+              <span className="block text-[clamp(1.05rem,4vw,1.5rem)] font-bold tracking-normal text-fg/65">
                 Un misterio en cada ronda
               </span>
             </h1>
@@ -123,7 +123,7 @@ export default function SetupScreen() {
           <button
             type="button"
             onClick={toggleTheme}
-            className="btn mt-1 rounded-xl px-3 py-2 text-sm font-semibold tracking-normal"
+            className="btn mt-1 h-11 rounded-xl px-3.5 py-0 text-sm font-semibold tracking-normal"
           >
             {isDark ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
             {isDark ? "Oscuro" : "Claro"}
@@ -142,7 +142,7 @@ export default function SetupScreen() {
                 type="button"
                 onClick={() => setPlayerCount(players.length - 1)}
                 aria-label="Reducir jugadores"
-                className="btn h-10 w-10 rounded-xl p-0 text-lg font-bold tracking-normal"
+                className="btn h-11 w-11 rounded-xl p-0 text-lg font-bold tracking-normal"
               >
                 −
               </button>
@@ -151,7 +151,7 @@ export default function SetupScreen() {
                 type="button"
                 onClick={() => setPlayerCount(players.length + 1)}
                 aria-label="Aumentar jugadores"
-                className="btn h-10 w-10 rounded-xl p-0 text-lg font-bold tracking-normal"
+                className="btn h-11 w-11 rounded-xl p-0 text-lg font-bold tracking-normal"
               >
                 +
               </button>
@@ -234,7 +234,7 @@ export default function SetupScreen() {
               type="button"
               onClick={() => setRevealAutoHide(!reveal.autoHide)}
               className={cn(
-                "h-10 rounded-xl border px-3 text-sm font-bold transition",
+                "h-11 rounded-xl border px-3 text-sm font-bold transition",
                 reveal.autoHide
                   ? "border-accent/35 bg-accent/15 text-fg"
                   : "border-border/12 bg-surface/5 text-fg/70 hover:bg-surface/10",

@@ -60,20 +60,20 @@ export default function DealScreen() {
   if (!player) return null
 
   return (
-    <div className="mx-auto flex min-h-[100svh] w-full max-w-4xl flex-col px-6 py-10">
+    <div className="screen flex min-h-[100svh] max-w-4xl flex-col">
       <div className="flex items-start justify-between gap-4">
         <div>
           <div className="text-xs font-semibold uppercase tracking-wide text-fg/55">
             Reparto {currentPlayerIndex + 1}/{players.length}
           </div>
-          <div className="mt-2 font-display text-3xl font-black text-fg sm:text-4xl">
+          <div className="mt-2 break-words font-display text-3xl font-black text-fg sm:text-4xl">
             {formatPlayerLabel(player.name, currentPlayerIndex)}
           </div>
         </div>
         <button
           type="button"
           onClick={resetToSetup}
-          className="btn rounded-xl px-3 py-2 text-sm font-semibold tracking-normal"
+          className="btn h-11 rounded-xl px-3.5 py-0 text-sm font-semibold tracking-normal"
         >
           <Undo2 className="h-4 w-4" />
           Ajustes
@@ -116,7 +116,7 @@ export default function DealScreen() {
                 {isImpostor ? "IMPOSTOR" : "PALABRA"}
               </div>
 
-              <div className="mt-8 font-display text-balance text-4xl font-black text-fg sm:text-5xl">
+              <div className="mt-8 break-words font-display text-balance text-4xl font-black text-fg sm:text-5xl">
                 {isImpostor ? "IMPOSTOR" : secretWord ?? "—"}
               </div>
 

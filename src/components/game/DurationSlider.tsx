@@ -44,9 +44,9 @@ export default function DurationSlider(props: {
           onChange(next)
         }}
         className={cn(
-          "h-2 w-full cursor-pointer appearance-none rounded-full bg-surface/10 outline-none focus-visible:shadow-[0_0_0_2px_rgb(var(--accent)_/_0.4)]",
-          "[&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-fg [&::-webkit-slider-thumb]:shadow-[0_0_0_6px_rgb(var(--accent)_/_0.18)]",
-          "[&::-moz-range-thumb]:h-5 [&::-moz-range-thumb]:w-5 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-0 [&::-moz-range-thumb]:bg-fg [&::-moz-range-thumb]:shadow-[0_0_0_6px_rgb(var(--accent)_/_0.18)]",
+          "h-3 w-full cursor-pointer appearance-none rounded-full bg-surface/10 outline-none focus-visible:shadow-[0_0_0_2px_rgb(var(--accent)_/_0.4)]",
+          "[&::-webkit-slider-thumb]:h-6 [&::-webkit-slider-thumb]:w-6 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-fg [&::-webkit-slider-thumb]:shadow-[0_0_0_8px_rgb(var(--accent)_/_0.18)]",
+          "[&::-moz-range-thumb]:h-6 [&::-moz-range-thumb]:w-6 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-0 [&::-moz-range-thumb]:bg-fg [&::-moz-range-thumb]:shadow-[0_0_0_8px_rgb(var(--accent)_/_0.18)]",
         )}
       />
 

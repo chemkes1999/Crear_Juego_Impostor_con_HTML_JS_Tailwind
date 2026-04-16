@@ -24,7 +24,7 @@ export default function EliminationScreen() {
   if (!elimination) return null
 
   return (
-    <div className="relative mx-auto flex min-h-[100svh] w-full max-w-6xl flex-col overflow-hidden px-6 py-10">
+    <div className="screen relative flex min-h-[100svh] max-w-6xl flex-col overflow-hidden">
       <div aria-hidden className="among-space among-space-elim pointer-events-none absolute inset-0" />
       <div aria-hidden className="among-stars pointer-events-none absolute inset-0 opacity-80" />
       <div aria-hidden className="among-vignette pointer-events-none absolute inset-0" />

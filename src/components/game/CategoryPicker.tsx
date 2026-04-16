@@ -19,7 +19,7 @@ export default function CategoryPicker(props: {
             type="button"
             onClick={() => onToggle(cat)}
             className={cn(
-              "rounded-full border px-3 py-1 text-sm font-medium transition",
+              "inline-flex min-h-11 items-center justify-center rounded-full border px-4 py-2 text-sm font-semibold transition",
               isOn
                 ? "border-accent/35 bg-accent/15 text-fg hover:bg-accent/20"
                 : "border-border/12 bg-surface/5 text-fg/70 hover:bg-surface/10",

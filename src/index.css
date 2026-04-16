@@ -26,6 +26,10 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
 html.dark {
   color-scheme: dark;
   --bg: 6 6 14;
@@ -66,11 +70,29 @@ body {
   color: rgb(var(--fg));
 }
 
+body {
+  overscroll-behavior-y: none;
+  overflow-x: hidden;
+}
+
 ::selection {
   background: rgb(var(--accent) / 0.35);
 }
 
 @layer components {
+  .screen {
+    @apply mx-auto w-full px-4 sm:px-6;
+    padding-top: calc(1.5rem + env(safe-area-inset-top));
+    padding-bottom: calc(1.5rem + env(safe-area-inset-bottom));
+  }
+
+  @media (min-width: 640px) {
+    .screen {
+      padding-top: calc(2.5rem + env(safe-area-inset-top));
+      padding-bottom: calc(2.5rem + env(safe-area-inset-bottom));
+    }
+  }
+
   .game-root {
     @apply relative min-h-[100svh] overflow-hidden bg-bg text-fg;
   }
@@ -218,7 +240,7 @@ body {
   }
 
   .input {
-    @apply h-10 w-full rounded-xl border px-3 text-sm outline-none;
+    @apply h-11 w-full rounded-xl border px-3 text-sm outline-none;
     border-color: rgb(var(--border) / 0.14);
     background: rgb(var(--surface2) / 0.35);
     color: rgb(var(--fg) / 0.92);

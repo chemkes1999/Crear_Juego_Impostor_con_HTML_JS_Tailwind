@@ -31,7 +31,7 @@ export default function GameOverScreen() {
   return (
     <div
       className={cn(
-        "relative mx-auto flex min-h-[100svh] w-full max-w-6xl flex-col overflow-hidden px-6 py-10",
+        "screen relative flex min-h-[100svh] max-w-6xl flex-col overflow-hidden",
         isCivilians ? "among-gameover-win" : "among-gameover-lose",
       )}
     >
