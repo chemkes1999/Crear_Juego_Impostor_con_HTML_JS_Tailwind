@@ -103,58 +103,122 @@ function playImpostorWin(ctx: AudioContext, out: AudioNode) {
   const t0 = now(ctx)
 
   const bus = ctx.createGain()
-  bus.gain.value = 1
-  bus.connect(out)
+  bus.gain.value = 0.98
 
-  const drone = ctx.createOscillator()
-  const droneGain = ctx.createGain()
+  const delay = ctx.createDelay(1.0)
+  delay.delayTime.setValueAtTime(0.26, t0)
+  const feedback = ctx.createGain()
+  feedback.gain.setValueAtTime(0.42, t0)
+  const echoTone = ctx.createBiquadFilter()
+  echoTone.type = "lowpass"
+  echoTone.frequency.setValueAtTime(820, t0)
+  echoTone.Q.setValueAtTime(0.6, t0)
+
+  bus.connect(out)
+  bus.connect(delay)
+  delay.connect(echoTone)
+  echoTone.connect(feedback)
+  feedback.connect(delay)
+  echoTone.connect(out)
+
   const droneFilter = ctx.createBiquadFilter()
-  drone.type = "sawtooth"
-  drone.frequency.setValueAtTime(62, t0)
   droneFilter.type = "lowpass"
   droneFilter.frequency.setValueAtTime(520, t0)
-  droneFilter.Q.setValueAtTime(0.9, t0)
-  drone.connect(droneFilter)
-  droneFilter.connect(droneGain)
-  droneGain.connect(bus)
-  env(droneGain, t0, 0.02, 0.2, 0.22, 1.2, 0.85)
-  drone.start(t0)
-  drone.stop(t0 + 1.45)
+  droneFilter.frequency.exponentialRampToValueAtTime(240, t0 + 2.6)
+  droneFilter.Q.setValueAtTime(0.95, t0)
+
+  const droneAmp = ctx.createGain()
+  droneAmp.gain.setValueAtTime(0.0001, t0)
+
+  droneFilter.connect(droneAmp)
+  droneAmp.connect(bus)
+
+  const droneA = ctx.createOscillator()
+  const droneB = ctx.createOscillator()
+  droneA.type = "sawtooth"
+  droneB.type = "sawtooth"
+  droneA.frequency.setValueAtTime(64, t0)
+  droneB.frequency.setValueAtTime(64, t0)
+  droneA.detune.setValueAtTime(-18, t0)
+  droneB.detune.setValueAtTime(18, t0)
+  droneA.frequency.exponentialRampToValueAtTime(52, t0 + 2.8)
+  droneB.frequency.exponentialRampToValueAtTime(52, t0 + 2.8)
+  droneA.connect(droneFilter)
+  droneB.connect(droneFilter)
+  env(droneAmp, t0, 0.03, 0.5, 0.16, 2.25, 0.9)
+  droneA.start(t0)
+  droneB.start(t0)
+  droneA.stop(t0 + 3.0)
+  droneB.stop(t0 + 3.0)
 
   const sub = ctx.createOscillator()
   const subGain = ctx.createGain()
   sub.type = "sine"
   sub.frequency.setValueAtTime(31, t0)
+  sub.frequency.exponentialRampToValueAtTime(26, t0 + 2.4)
   sub.connect(subGain)
   subGain.connect(bus)
-  env(subGain, t0, 0.01, 0.25, 0.16, 1.1, 0.85)
+  env(subGain, t0, 0.01, 0.45, 0.09, 2.1, 0.95)
   sub.start(t0)
-  sub.stop(t0 + 1.3)
+  sub.stop(t0 + 2.9)
 
-  const noise = ctx.createBufferSource()
-  noise.buffer = createNoise(ctx, 1.1)
-  const noiseGain = ctx.createGain()
-  const noiseFilter = ctx.createBiquadFilter()
-  noiseFilter.type = "bandpass"
-  noiseFilter.frequency.setValueAtTime(850, t0)
-  noiseFilter.Q.setValueAtTime(1.1, t0)
-  noise.connect(noiseFilter)
-  noiseFilter.connect(noiseGain)
-  noiseGain.connect(bus)
-  env(noiseGain, t0 + 0.03, 0.02, 0.25, 0.12, 0.9, 0.75)
-  noise.start(t0 + 0.03)
-  noise.stop(t0 + 1.1)
+  const lfo = ctx.createOscillator()
+  const lfoGain = ctx.createGain()
+  lfo.type = "sine"
+  lfo.frequency.setValueAtTime(4.2, t0)
+  lfoGain.gain.setValueAtTime(0.06, t0)
+  lfo.connect(lfoGain)
+  lfoGain.connect(droneAmp.gain)
+  lfo.start(t0)
+  lfo.stop(t0 + 2.9)
+
+  const hiss = ctx.createBufferSource()
+  hiss.buffer = createNoise(ctx, 2.4)
+  const hissGain = ctx.createGain()
+  const hissFilter = ctx.createBiquadFilter()
+  hissFilter.type = "bandpass"
+  hissFilter.frequency.setValueAtTime(1400, t0 + 0.05)
+  hissFilter.frequency.exponentialRampToValueAtTime(360, t0 + 2.35)
+  hissFilter.Q.setValueAtTime(1.35, t0)
+  hiss.connect(hissFilter)
+  hissFilter.connect(hissGain)
+  hissGain.connect(bus)
+  env(hissGain, t0 + 0.05, 0.04, 0.6, 0.07, 1.8, 0.8)
+  hiss.start(t0 + 0.05)
+  hiss.stop(t0 + 2.45)
+
+  ;[
+    { at: 0.42, f1: 128, f2: 58 },
+    { at: 0.92, f1: 118, f2: 54 },
+  ].forEach((b) => {
+    const beat = ctx.createOscillator()
+    const beatGain = ctx.createGain()
+    beat.type = "sine"
+    beat.frequency.setValueAtTime(b.f1, t0 + b.at)
+    beat.frequency.exponentialRampToValueAtTime(b.f2, t0 + b.at + 0.18)
+    beat.connect(beatGain)
+    beatGain.connect(bus)
+    env(beatGain, t0 + b.at, 0.004, 0.1, 0.001, 0.35, 0.9)
+    beat.start(t0 + b.at)
+    beat.stop(t0 + b.at + 0.4)
+  })
 
   const stab = ctx.createOscillator()
   const stabGain = ctx.createGain()
+  const stabFilter = ctx.createBiquadFilter()
   stab.type = "square"
-  stab.frequency.setValueAtTime(140, t0 + 0.22)
-  stab.frequency.exponentialRampToValueAtTime(68, t0 + 0.55)
-  stab.connect(stabGain)
+  stab.frequency.setValueAtTime(160, t0 + 0.22)
+  stab.frequency.exponentialRampToValueAtTime(72, t0 + 0.72)
+  stabFilter.type = "lowpass"
+  stabFilter.frequency.setValueAtTime(900, t0 + 0.22)
+  stabFilter.frequency.exponentialRampToValueAtTime(360, t0 + 1.3)
+  stabFilter.Q.setValueAtTime(0.75, t0)
+  stab.connect(stabFilter)
+  stabFilter.connect(stabGain)
   stabGain.connect(bus)
-  env(stabGain, t0 + 0.22, 0.006, 0.12, 0.02, 0.5, 0.95)
+  env(stabGain, t0 + 0.22, 0.008, 0.18, 0.02, 0.9, 0.95)
   stab.start(t0 + 0.22)
-  stab.stop(t0 + 0.75)
+  stab.stop(t0 + 1.35)
 }
 
 function playDeath(ctx: AudioContext, out: AudioNode) {
@@ -216,4 +280,3 @@ export function playSfx(name: SfxName) {
     if (name === "death") playDeath(a.ctx, a.master)
   } catch {}
 }
-
