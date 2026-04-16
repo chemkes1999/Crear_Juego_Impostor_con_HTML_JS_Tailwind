@@ -126,54 +126,62 @@ function playVictory(ctx: AudioContext, out: AudioNode) {
 
 function playImpostorWin(ctx: AudioContext, out: AudioNode) {
   const t0 = now(ctx)
-  const dur = 11.2
+  const dur = 17.4
 
   const bus = ctx.createGain()
-  bus.gain.value = 0.84
+  bus.gain.value = 0.82
 
   const pre = ctx.createBiquadFilter()
   pre.type = "lowpass"
-  pre.frequency.setValueAtTime(980, t0)
-  pre.frequency.exponentialRampToValueAtTime(200, t0 + dur)
-  pre.Q.setValueAtTime(0.92, t0)
+  pre.frequency.setValueAtTime(880, t0)
+  pre.frequency.exponentialRampToValueAtTime(170, t0 + dur)
+  pre.Q.setValueAtTime(1.02, t0)
 
   const drive = ctx.createWaveShaper()
-  drive.curve = distortionCurve(18)
+  drive.curve = distortionCurve(22)
   drive.oversample = "4x"
 
   const post = ctx.createBiquadFilter()
   post.type = "lowpass"
-  post.frequency.setValueAtTime(520, t0)
-  post.frequency.exponentialRampToValueAtTime(110, t0 + dur)
-  post.Q.setValueAtTime(1.12, t0)
+  post.frequency.setValueAtTime(460, t0)
+  post.frequency.exponentialRampToValueAtTime(86, t0 + dur)
+  post.Q.setValueAtTime(1.2, t0)
+
+  const comp = ctx.createDynamicsCompressor()
+  comp.threshold.setValueAtTime(-18, t0)
+  comp.knee.setValueAtTime(18, t0)
+  comp.ratio.setValueAtTime(8, t0)
+  comp.attack.setValueAtTime(0.006, t0)
+  comp.release.setValueAtTime(0.22, t0)
 
   const postGain = ctx.createGain()
-  postGain.gain.value = 0.92
+  postGain.gain.value = 0.9
 
   bus.connect(pre)
   pre.connect(drive)
   drive.connect(post)
-  post.connect(postGain)
+  post.connect(comp)
+  comp.connect(postGain)
   postGain.connect(out)
 
   const delay = ctx.createDelay(1.0)
   delay.delayTime.setValueAtTime(0.52, t0)
-  delay.delayTime.linearRampToValueAtTime(0.72, t0 + Math.max(2.5, dur - 1.2))
+  delay.delayTime.linearRampToValueAtTime(0.78, t0 + Math.max(2.5, dur - 1.2))
   const feedback = ctx.createGain()
-  feedback.gain.setValueAtTime(0.66, t0)
-  feedback.gain.exponentialRampToValueAtTime(0.46, t0 + dur)
+  feedback.gain.setValueAtTime(0.7, t0)
+  feedback.gain.exponentialRampToValueAtTime(0.5, t0 + dur)
   const echoTone = ctx.createBiquadFilter()
   echoTone.type = "lowpass"
-  echoTone.frequency.setValueAtTime(420, t0)
-  echoTone.frequency.exponentialRampToValueAtTime(120, t0 + dur - 0.2)
-  echoTone.Q.setValueAtTime(0.8, t0)
+  echoTone.frequency.setValueAtTime(380, t0)
+  echoTone.frequency.exponentialRampToValueAtTime(100, t0 + dur - 0.2)
+  echoTone.Q.setValueAtTime(0.9, t0)
   const echoWet = ctx.createGain()
-  echoWet.gain.setValueAtTime(0.56, t0)
-  echoWet.gain.exponentialRampToValueAtTime(0.22, t0 + dur)
+  echoWet.gain.setValueAtTime(0.6, t0)
+  echoWet.gain.exponentialRampToValueAtTime(0.26, t0 + dur)
 
   const echoSend = ctx.createGain()
-  echoSend.gain.setValueAtTime(0.55, t0)
-  post.connect(echoSend)
+  echoSend.gain.setValueAtTime(0.58, t0)
+  comp.connect(echoSend)
   echoSend.connect(delay)
   delay.connect(echoTone)
   echoTone.connect(feedback)
@@ -182,18 +190,18 @@ function playImpostorWin(ctx: AudioContext, out: AudioNode) {
   echoWet.connect(out)
 
   const convolver = ctx.createConvolver()
-  convolver.buffer = createImpulse(ctx, 7.4, 10.2)
+  convolver.buffer = createImpulse(ctx, 10.8, 12.5)
   const verbTone = ctx.createBiquadFilter()
   verbTone.type = "lowpass"
-  verbTone.frequency.setValueAtTime(420, t0)
-  verbTone.frequency.exponentialRampToValueAtTime(110, t0 + dur)
-  verbTone.Q.setValueAtTime(0.75, t0)
+  verbTone.frequency.setValueAtTime(380, t0)
+  verbTone.frequency.exponentialRampToValueAtTime(90, t0 + dur)
+  verbTone.Q.setValueAtTime(0.82, t0)
   const verbWet = ctx.createGain()
   verbWet.gain.setValueAtTime(0.0001, t0)
-  verbWet.gain.exponentialRampToValueAtTime(0.5, t0 + 0.6)
-  verbWet.gain.exponentialRampToValueAtTime(0.22, t0 + dur)
+  verbWet.gain.exponentialRampToValueAtTime(0.62, t0 + 1.2)
+  verbWet.gain.exponentialRampToValueAtTime(0.32, t0 + dur)
 
-  post.connect(convolver)
+  comp.connect(convolver)
   convolver.connect(verbTone)
   verbTone.connect(verbWet)
   verbWet.connect(out)
@@ -353,6 +361,10 @@ function playImpostorWin(ctx: AudioContext, out: AudioNode) {
     { at: 4.25, f1: 84, f2: 38 },
     { at: 6.05, f1: 80, f2: 36 },
     { at: 8.1, f1: 76, f2: 34 },
+    { at: 10.4, f1: 74, f2: 32 },
+    { at: 12.25, f1: 70, f2: 30 },
+    { at: 13.9, f1: 66, f2: 28 },
+    { at: 15.35, f1: 62, f2: 26 },
   ].forEach((b) => {
     const beat = ctx.createOscillator()
     const beatGain = ctx.createGain()
@@ -365,6 +377,51 @@ function playImpostorWin(ctx: AudioContext, out: AudioNode) {
     beat.start(t0 + b.at)
     beat.stop(t0 + b.at + 0.4)
   })
+
+  const scream = ctx.createOscillator()
+  const screamGain = ctx.createGain()
+  const screamFilter = ctx.createBiquadFilter()
+  scream.type = "sawtooth"
+  scream.frequency.setValueAtTime(140, t0 + dur - 4.2)
+  scream.frequency.exponentialRampToValueAtTime(640, t0 + dur - 1.0)
+  scream.frequency.exponentialRampToValueAtTime(170, t0 + dur + 1.6)
+  screamFilter.type = "bandpass"
+  screamFilter.frequency.setValueAtTime(560, t0 + dur - 3.8)
+  screamFilter.frequency.exponentialRampToValueAtTime(980, t0 + dur - 1.0)
+  screamFilter.frequency.exponentialRampToValueAtTime(420, t0 + dur + 1.6)
+  screamFilter.Q.setValueAtTime(6.8, t0)
+  scream.connect(screamFilter)
+  screamFilter.connect(screamGain)
+  screamGain.connect(bus)
+  env(screamGain, t0 + dur - 4.2, 0.12, 0.6, 0.02, 4.6, 0.42)
+  scream.start(t0 + dur - 4.2)
+  scream.stop(t0 + dur + 2.2)
+
+  const razor = ctx.createBufferSource()
+  razor.buffer = createNoise(ctx, 6.0)
+  const razorFilter = ctx.createBiquadFilter()
+  const razorGain = ctx.createGain()
+  razorFilter.type = "highpass"
+  razorFilter.frequency.setValueAtTime(420, t0 + dur - 3.8)
+  razorFilter.frequency.exponentialRampToValueAtTime(1100, t0 + dur - 1.0)
+  razorFilter.Q.setValueAtTime(0.72, t0)
+  razor.connect(razorFilter)
+  razorFilter.connect(razorGain)
+  razorGain.connect(bus)
+  env(razorGain, t0 + dur - 3.8, 0.18, 0.9, 0.02, 4.0, 0.22)
+  razor.start(t0 + dur - 3.8)
+  razor.stop(t0 + dur + 1.9)
+
+  const finalSub = ctx.createOscillator()
+  const finalSubGain = ctx.createGain()
+  finalSub.type = "sine"
+  finalSub.frequency.setValueAtTime(18, t0 + dur - 2.4)
+  finalSub.frequency.exponentialRampToValueAtTime(9, t0 + dur + 2.2)
+  finalSub.connect(finalSubGain)
+  finalSubGain.connect(bus)
+  env(finalSubGain, t0 + dur - 2.4, 0.08, 0.9, 0.03, 3.8, 0.85)
+  finalSub.start(t0 + dur - 2.4)
+  finalSub.stop(t0 + dur + 2.7)
 
   const stab = ctx.createOscillator()
   const stabGain = ctx.createGain()
