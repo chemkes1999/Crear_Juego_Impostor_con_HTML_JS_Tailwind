@@ -1,6 +1,7 @@
+import type { RealtimeChannel } from "@supabase/supabase-js"
 import { create } from "zustand"
-import { createWsClient } from "@/network/wsClient"
 import { hostHandleClientAction } from "@/game/onlineActions"
+import { getSupabase } from "@/network/supabaseClient"
 import { useGameStore } from "@/store/gameStore"
 
 type RoomMode = "local" | "online"
@@ -11,64 +12,6 @@ type RosterPlayer = {
   name: string
 }
 
-type RoomCreatedMessage = {
-  type: "ROOM_CREATED"
-  code: string
-  hostKey: string
-  playerId: string
-  roster: RosterPlayer[]
-}
-
-type JoinedMessage = {
-  type: "JOINED"
-  code: string
-  playerId: string
-  roster: RosterPlayer[]
-  publicState?: unknown
-}
-
-type RosterUpdateMessage = {
-  type: "ROSTER_UPDATE"
-  roster: RosterPlayer[]
-}
-
-type PublicStateMessage = {
-  type: "PUBLIC_STATE"
-  state: unknown
-}
-
-type PrivateMessage = {
-  type: "PRIVATE"
-  payload: unknown
-}
-
-type ErrorMessage = {
-  type: "ERROR"
-  message: string
-}
-
-type RoomClosedMessage = {
-  type: "ROOM_CLOSED"
-  message: string
-}
-
-type ClientActionMessage = {
-  type: "CLIENT_ACTION"
-  playerId: string
-  action: unknown
-}
-
-type ServerMessage =
-  | RoomCreatedMessage
-  | JoinedMessage
-  | RosterUpdateMessage
-  | PublicStateMessage
-  | PrivateMessage
-  | ErrorMessage
-  | RoomClosedMessage
-  | ClientActionMessage
-  | { type: string; [k: string]: unknown }
-
 type RoomState = {
   mode: RoomMode
   status: RoomStatus
@@ -76,7 +19,6 @@ type RoomState = {
   roomCode: string | null
   playerId: string | null
   isHost: boolean
-  hostKey: string | null
   roster: RosterPlayer[]
   publicState: unknown | null
   privatePayload: unknown | null
@@ -90,31 +32,40 @@ type RoomState = {
   sendClientAction: (action: unknown) => void
   publishPublicState: (state: unknown) => void
   sendPrivate: (playerId: string, payload: unknown) => void
-  handleServerMessage: (msg: ServerMessage) => void
 }
 
-const DEFAULT_WS_URL = "ws://localhost:3001"
+function normalizeName(value: string) {
+  const name = value.trim()
+  if (!name) return null
+  if (name.length > 20) return name.slice(0, 20)
+  return name
+}
+
+function createRoomCode() {
+  return String(Math.floor(100000 + Math.random() * 900000))
+}
+
+async function ensureAnonUser() {
+  const supabase = getSupabase()
+  const sessionRes = await supabase.auth.getSession()
+  const existingUser = sessionRes.data.session?.user ?? null
+  if (existingUser) return existingUser
+
+  const res = await supabase.auth.signInAnonymously()
+  if (res.error) throw res.error
+  const user = res.data.user
+  if (!user) throw new Error("No se pudo iniciar sesión")
+  return user
+}
 
 export const useRoomStore = create<RoomState>((set, get) => {
-  let client: ReturnType<typeof createWsClient> | null = null
+  let channels: RealtimeChannel[] = []
+  let supabase: ReturnType<typeof getSupabase> | null = null
 
-  function wsUrl() {
-    const envUrl = (import.meta as unknown as { env?: Record<string, unknown> }).env?.VITE_WS_URL
-    const url = typeof envUrl === "string" && envUrl.trim() ? envUrl.trim() : DEFAULT_WS_URL
-    return url
-  }
-
-  function ensureClient() {
-    if (client) return client
-    client = createWsClient({
-      url: wsUrl(),
-      onMessage: (msg) => get().handleServerMessage(msg as ServerMessage),
-      onClose: () => {
-        const s = get()
-        if (s.status === "connecting") set({ status: "error", errorMessage: "No se pudo conectar" })
-      },
-    })
-    return client
+  function sb() {
+    if (supabase) return supabase
+    supabase = getSupabase()
+    return supabase
   }
 
   function resetRoomState() {
@@ -124,21 +75,97 @@ export const useRoomStore = create<RoomState>((set, get) => {
       roomCode: null,
       playerId: null,
       isHost: false,
-      hostKey: null,
       roster: [],
       publicState: null,
       privatePayload: null,
     })
   }
 
-  function disconnectClient() {
-    try {
-      client?.send({ type: "LEAVE_ROOM" })
-    } catch (err) {
-      void err
-    }
-    client?.disconnect()
-    client = null
+  function unsubscribeAll() {
+    for (const ch of channels) void ch.unsubscribe()
+    channels = []
+  }
+
+  async function fetchRoster(roomCode: string) {
+    const res = await sb()
+      .from("room_members")
+      .select("user_id,name")
+      .eq("room_code", roomCode)
+      .order("joined_at", { ascending: true })
+    if (res.error) throw res.error
+    const roster = (res.data ?? []).map((p) => ({ playerId: String(p.user_id), name: String(p.name ?? "") }))
+    set({ roster })
+  }
+
+  async function fetchPublicState(roomCode: string) {
+    const res = await sb().from("room_state").select("state").eq("room_code", roomCode).maybeSingle()
+    if (res.error) throw res.error
+    if (!res.data) return null
+    return (res.data as { state: unknown }).state
+  }
+
+  function subscribeRoom(roomCode: string, userId: string, isHost: boolean) {
+    unsubscribeAll()
+    const s = sb()
+
+    const rosterChannel = s
+      .channel(`room:${roomCode}:roster`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "room_members", filter: `room_code=eq.${roomCode}` },
+        () => void fetchRoster(roomCode).catch((err) => void err),
+      )
+      .subscribe()
+
+    const stateChannel = s
+      .channel(`room:${roomCode}:state`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "room_state", filter: `room_code=eq.${roomCode}` },
+        (payload) => {
+          const next = (payload.new as { state?: unknown } | null)?.state ?? null
+          set({ publicState: next })
+          if (!get().isHost && next) useGameStore.getState().applyPublicState(next)
+        },
+      )
+      .subscribe()
+
+    const privateChannel = s
+      .channel(`room:${roomCode}:private:${userId}`)
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "private_messages", filter: `recipient_user_id=eq.${userId}` },
+        (payload) => {
+          const p = (payload.new as { payload?: unknown } | null)?.payload ?? null
+          set({ privatePayload: p })
+          if (p) useGameStore.getState().applyPrivate(p)
+        },
+      )
+      .subscribe()
+
+    channels = [rosterChannel, stateChannel, privateChannel]
+
+    if (!isHost) return
+
+    const actionsChannel = s
+      .channel(`room:${roomCode}:actions`)
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "client_actions", filter: `room_code=eq.${roomCode}` },
+        (payload) => {
+          const row = payload.new as { user_id?: unknown; action?: unknown } | null
+          const playerId = typeof row?.user_id === "string" ? row.user_id : null
+          if (!playerId) return
+          hostHandleClientAction(
+            { roster: get().roster, publishPublicState: get().publishPublicState, sendPrivate: get().sendPrivate },
+            playerId,
+            row?.action ?? null,
+          )
+        },
+      )
+      .subscribe()
+
+    channels = [...channels, actionsChannel]
   }
 
   return {
@@ -148,7 +175,6 @@ export const useRoomStore = create<RoomState>((set, get) => {
     roomCode: null,
     playerId: null,
     isHost: false,
-    hostKey: null,
     roster: [],
     publicState: null,
     privatePayload: null,
@@ -164,140 +190,143 @@ export const useRoomStore = create<RoomState>((set, get) => {
     setSelfName: (name) => set({ selfName: name }),
 
     createRoom: () => {
-      const name = get().selfName.trim()
-      if (!name) {
-        set({ status: "error", errorMessage: "Escribe tu nombre" })
-        return
-      }
-      set({ status: "connecting", errorMessage: null, privatePayload: null })
-      useGameStore.getState().resetToSetup()
-      ensureClient().send({ type: "CREATE_ROOM", name })
+      void (async () => {
+        const name = normalizeName(get().selfName)
+        if (!name) {
+          set({ status: "error", errorMessage: "Escribe tu nombre" })
+          return
+        }
+
+        set({ status: "connecting", errorMessage: null, privatePayload: null })
+        useGameStore.getState().resetToSetup()
+
+        try {
+          const user = await ensureAnonUser()
+
+          let code = createRoomCode()
+          let ok = false
+          for (let i = 0; i < 6; i += 1) {
+            const res = await sb().from("rooms").insert({ code, host_user_id: user.id })
+            if (!res.error) {
+              ok = true
+              break
+            }
+            code = createRoomCode()
+          }
+          if (!ok) throw new Error("No se pudo crear la sala")
+
+          const memberRes = await sb().from("room_members").insert({ room_code: code, user_id: user.id, name })
+          if (memberRes.error) throw memberRes.error
+
+          const initialState = useGameStore.getState()
+          const stateRes = await sb().from("room_state").upsert({
+            room_code: code,
+            state: {
+              phase: initialState.phase,
+              roundNumber: initialState.roundNumber,
+              players: initialState.players,
+              categories: initialState.categories,
+              difficulty: initialState.difficulty,
+              currentPlayerIndex: initialState.currentPlayerIndex,
+              isRevealed: initialState.isRevealed,
+              reveal: initialState.reveal,
+              discussion: initialState.discussion,
+              vote: initialState.vote,
+              elimination: initialState.elimination,
+              gameOver: initialState.gameOver,
+            },
+          })
+          if (stateRes.error) throw stateRes.error
+
+          set({
+            status: "in_room",
+            errorMessage: null,
+            roomCode: code,
+            playerId: user.id,
+            isHost: true,
+          })
+
+          await fetchRoster(code)
+          const publicState = await fetchPublicState(code)
+          set({ publicState })
+          if (publicState) useGameStore.getState().applyPublicState(publicState)
+          subscribeRoom(code, user.id, true)
+        } catch (err) {
+          set({ status: "error", errorMessage: err instanceof Error ? err.message : "Error al crear sala" })
+        }
+      })()
     },
 
     joinRoom: (code) => {
-      const name = get().selfName.trim()
-      const normalized = code.replace(/\s+/g, "")
-      if (!name) {
-        set({ status: "error", errorMessage: "Escribe tu nombre" })
-        return
-      }
-      if (!/^\d{6}$/.test(normalized)) {
-        set({ status: "error", errorMessage: "Código inválido" })
-        return
-      }
-      set({ status: "connecting", errorMessage: null, privatePayload: null })
-      useGameStore.getState().resetToSetup()
-      ensureClient().send({ type: "JOIN_ROOM", code: normalized, name })
+      void (async () => {
+        const name = normalizeName(get().selfName)
+        const normalizedCode = code.replace(/\s+/g, "")
+        if (!name) {
+          set({ status: "error", errorMessage: "Escribe tu nombre" })
+          return
+        }
+        if (!/^\d{6}$/.test(normalizedCode)) {
+          set({ status: "error", errorMessage: "Código inválido" })
+          return
+        }
+
+        set({ status: "connecting", errorMessage: null, privatePayload: null })
+        useGameStore.getState().resetToSetup()
+
+        try {
+          const user = await ensureAnonUser()
+          const memberRes = await sb()
+            .from("room_members")
+            .upsert({ room_code: normalizedCode, user_id: user.id, name }, { onConflict: "room_code,user_id" })
+          if (memberRes.error) throw memberRes.error
+
+          set({
+            status: "in_room",
+            errorMessage: null,
+            roomCode: normalizedCode,
+            playerId: user.id,
+            isHost: false,
+          })
+
+          await fetchRoster(normalizedCode)
+          const publicState = await fetchPublicState(normalizedCode)
+          set({ publicState })
+          if (publicState) useGameStore.getState().applyPublicState(publicState)
+          subscribeRoom(normalizedCode, user.id, false)
+        } catch (err) {
+          set({ status: "error", errorMessage: err instanceof Error ? err.message : "Error al unirse" })
+        }
+      })()
     },
 
     leaveRoom: () => {
-      disconnectClient()
+      unsubscribeAll()
       resetRoomState()
       useGameStore.getState().resetToSetup()
     },
 
     sendClientAction: (action) => {
-      const s = get()
-      if (s.status !== "in_room" || !s.roomCode || !s.playerId) return
-      ensureClient().send({ type: "CLIENT_ACTION", code: s.roomCode, playerId: s.playerId, action })
+      void (async () => {
+        const s = get()
+        if (s.status !== "in_room" || !s.roomCode || !s.playerId) return
+        await sb().from("client_actions").insert({ room_code: s.roomCode, user_id: s.playerId, action })
+      })()
     },
 
     publishPublicState: (state) => {
-      const s = get()
-      if (s.status !== "in_room" || !s.isHost || !s.roomCode || !s.hostKey) return
-      ensureClient().send({ type: "HOST_PUBLIC_STATE", code: s.roomCode, hostKey: s.hostKey, state })
+      void (async () => {
+        const s = get()
+        if (s.status !== "in_room" || !s.isHost || !s.roomCode) return
+        await sb().from("room_state").upsert({ room_code: s.roomCode, state })
+      })()
     },
 
     sendPrivate: (playerId, payload) => {
-      const s = get()
-      if (s.status !== "in_room" || !s.isHost || !s.roomCode || !s.hostKey) return
-      ensureClient().send({ type: "HOST_PRIVATE", code: s.roomCode, hostKey: s.hostKey, playerId, payload })
-    },
-
-    handleServerMessage: (msg) => {
-      if (msg.type === "ROOM_CREATED") {
-        const m = msg as RoomCreatedMessage
-        set({
-          status: "in_room",
-          errorMessage: null,
-          roomCode: m.code,
-          playerId: m.playerId,
-          isHost: true,
-          hostKey: m.hostKey,
-          roster: m.roster,
-        })
-        return
-      }
-
-      if (msg.type === "JOINED") {
-        const m = msg as JoinedMessage
-        set({
-          status: "in_room",
-          errorMessage: null,
-          roomCode: m.code,
-          playerId: m.playerId,
-          isHost: false,
-          hostKey: null,
-          roster: m.roster,
-          publicState: m.publicState ?? null,
-        })
-        if (m.publicState) useGameStore.getState().applyPublicState(m.publicState)
-        return
-      }
-
-      if (msg.type === "ROSTER_UPDATE") {
-        const m = msg as RosterUpdateMessage
-        set({ roster: m.roster })
-        return
-      }
-
-      if (msg.type === "PUBLIC_STATE") {
-        const m = msg as PublicStateMessage
-        set({ publicState: m.state })
-        if (!get().isHost) useGameStore.getState().applyPublicState(m.state)
-        return
-      }
-
-      if (msg.type === "PRIVATE") {
-        const m = msg as PrivateMessage
-        set({ privatePayload: m.payload })
-        if (!get().isHost) useGameStore.getState().applyPrivate(m.payload)
-        return
-      }
-
-      if (msg.type === "CLIENT_ACTION") {
-        if (!get().isHost) return
-        const m = msg as ClientActionMessage
-        hostHandleClientAction(
-          { roster: get().roster, publishPublicState: get().publishPublicState, sendPrivate: get().sendPrivate },
-          m.playerId,
-          m.action,
-        )
-        return
-      }
-
-      if (msg.type === "ROOM_CLOSED") {
-        const m = msg as RoomClosedMessage
-        disconnectClient()
-        set({
-          status: "error",
-          errorMessage: m.message,
-          roomCode: null,
-          playerId: null,
-          isHost: false,
-          hostKey: null,
-          roster: [],
-          publicState: null,
-          privatePayload: null,
-        })
-        useGameStore.getState().resetToSetup()
-        return
-      }
-
-      if (msg.type === "ERROR") {
-        const m = msg as ErrorMessage
-        set({ status: "error", errorMessage: m.message })
-      }
+      void (async () => {
+        const s = get()
+        if (s.status !== "in_room" || !s.isHost || !s.roomCode) return
+        await sb().from("private_messages").insert({ room_code: s.roomCode, recipient_user_id: playerId, payload })
+      })()
     },
   }
 })
