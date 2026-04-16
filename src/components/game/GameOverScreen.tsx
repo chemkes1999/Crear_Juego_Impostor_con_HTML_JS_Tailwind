@@ -19,16 +19,34 @@ export default function GameOverScreen() {
   const isCivilians = gameOver.winner === "civilians"
 
   return (
-    <div className="mx-auto flex min-h-[100svh] w-full max-w-5xl flex-col px-6 py-10">
+    <div className="relative mx-auto flex min-h-[100svh] w-full max-w-5xl flex-col overflow-hidden px-6 py-10">
+      <div
+        aria-hidden
+        className={cn(
+          "pointer-events-none absolute inset-0",
+          isCivilians ? "gameover-overlay-reveal" : "gameover-overlay-impostor",
+        )}
+      />
       <div>
         <div className="text-xs font-semibold uppercase tracking-wide text-white/50">Fin de la partida</div>
-        <div className="mt-2 text-3xl font-black text-white sm:text-4xl" style={{ fontFamily: '"Bungee", system-ui, sans-serif' }}>
+        <div
+          className={cn(
+            "mt-2 text-3xl font-black text-white sm:text-4xl",
+            isCivilians ? "gameover-title-reveal" : "gameover-title-impostor",
+          )}
+          style={{ fontFamily: '"Bungee", system-ui, sans-serif' }}
+        >
           {isCivilians ? "Ganaron los inocentes" : "Ganó el impostor"}
         </div>
       </div>
 
       <div className="mt-8 flex flex-1 flex-col justify-center">
-        <div className="rounded-3xl border border-white/10 bg-white/5 p-6 sm:p-10">
+        <div
+          className={cn(
+            "gameover-panel rounded-3xl border border-white/10 bg-white/5 p-6 sm:p-10",
+            isCivilians ? "gameover-panel-reveal" : "gameover-panel-impostor",
+          )}
+        >
           <div
             className={cn(
               "mx-auto inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-semibold",
@@ -77,4 +95,3 @@ export default function GameOverScreen() {
     </div>
   )
 }
-

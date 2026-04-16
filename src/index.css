@@ -21,3 +21,127 @@ body,
 #root {
   height: 100%;
 }
+
+@keyframes gameover-panel-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes gameover-title-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes gameover-reveal-glow {
+  0% {
+    opacity: 0;
+    transform: scale(0.98);
+    filter: blur(10px);
+  }
+  60% {
+    opacity: 0.9;
+    transform: scale(1);
+    filter: blur(0px);
+  }
+  100% {
+    opacity: 0.75;
+  }
+}
+
+@keyframes gameover-impostor-glitch {
+  0% {
+    transform: translate3d(0, 0, 0);
+    opacity: 0.6;
+  }
+  12% {
+    transform: translate3d(-6px, 2px, 0);
+    opacity: 0.85;
+  }
+  24% {
+    transform: translate3d(4px, -1px, 0);
+    opacity: 0.7;
+  }
+  36% {
+    transform: translate3d(-2px, 1px, 0);
+    opacity: 0.9;
+  }
+  48% {
+    transform: translate3d(6px, -2px, 0);
+    opacity: 0.75;
+  }
+  60% {
+    transform: translate3d(-4px, 2px, 0);
+    opacity: 0.9;
+  }
+  72% {
+    transform: translate3d(3px, -1px, 0);
+    opacity: 0.7;
+  }
+  84% {
+    transform: translate3d(-3px, 1px, 0);
+    opacity: 0.85;
+  }
+  100% {
+    transform: translate3d(0, 0, 0);
+    opacity: 0.6;
+  }
+}
+
+.gameover-panel {
+  animation: gameover-panel-in 650ms ease-out both;
+}
+
+.gameover-panel-reveal {
+  box-shadow: 0 0 0 1px rgba(163, 230, 53, 0.14), 0 40px 120px -70px rgba(163, 230, 53, 0.55);
+}
+
+.gameover-panel-impostor {
+  box-shadow: 0 0 0 1px rgba(217, 70, 239, 0.14), 0 50px 140px -75px rgba(217, 70, 239, 0.6);
+}
+
+.gameover-title-reveal {
+  animation: gameover-title-in 700ms ease-out both;
+}
+
+.gameover-title-impostor {
+  animation: gameover-title-in 700ms ease-out both, gameover-impostor-glitch 2400ms 900ms infinite;
+}
+
+.gameover-overlay-reveal {
+  background:
+    radial-gradient(900px circle at 15% 20%, rgba(163, 230, 53, 0.22), transparent 48%),
+    radial-gradient(900px circle at 80% 10%, rgba(59, 130, 246, 0.12), transparent 44%),
+    radial-gradient(1200px circle at 40% 110%, rgba(217, 70, 239, 0.09), transparent 52%);
+  animation: gameover-reveal-glow 1200ms ease-out both;
+}
+
+.gameover-overlay-impostor {
+  background:
+    radial-gradient(1000px circle at 30% 20%, rgba(217, 70, 239, 0.18), transparent 50%),
+    radial-gradient(900px circle at 85% 35%, rgba(244, 63, 94, 0.12), transparent 54%),
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.05) 0 1px, rgba(0, 0, 0, 0) 1px 5px);
+  mix-blend-mode: screen;
+  animation: gameover-impostor-glitch 2000ms ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gameover-panel,
+  .gameover-title-reveal,
+  .gameover-title-impostor,
+  .gameover-overlay-reveal,
+  .gameover-overlay-impostor {
+    animation: none !important;
+  }
+}

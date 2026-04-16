@@ -1,11 +1,14 @@
-import { Moon, Sun, Users } from "lucide-react"
+import { EyeOff, Moon, Search, Sun, Users } from "lucide-react"
 import { useTheme } from "@/hooks/useTheme"
 import { cn } from "@/lib/utils"
 import CategoryPicker from "@/components/game/CategoryPicker"
+import DurationSlider from "@/components/game/DurationSlider"
 import { useGameStore } from "@/store/gameStore"
 
-function clampInt(value: number, min: number, max: number) {
-  return Math.max(min, Math.min(max, Math.floor(value)))
+function formatClock(secondsTotal: number) {
+  const minutes = Math.floor(secondsTotal / 60)
+  const seconds = String(secondsTotal % 60).padStart(2, "0")
+  return `${minutes}:${seconds}`
 }
 
 export default function SetupScreen() {
@@ -28,25 +31,38 @@ export default function SetupScreen() {
   return (
     <div className="mx-auto w-full max-w-5xl px-6 py-10">
       <div className="flex items-start justify-between gap-4">
-        <div>
-          <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-white/70">
+        <div className="min-w-0">
+          <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-semibold text-white/70">
             <Users className="h-4 w-4" />
-            Impostor local
+            Misterio local
           </div>
           <h1
             className={cn(
               "mt-4 text-balance font-black uppercase tracking-tight text-white",
-              "text-4xl sm:text-5xl md:text-6xl",
+              "text-5xl sm:text-6xl md:text-7xl",
             )}
             style={{ fontFamily: '"Bungee", system-ui, sans-serif' }}
           >
-            Pasa el dispositivo.
-            <span className="block text-white/70">No mires la pantalla.</span>
+            IMPOSTOR
+            <span className="block text-lg font-bold tracking-normal text-white/65 sm:text-xl md:text-2xl">
+              Un misterio en cada ronda
+            </span>
           </h1>
-          <p className="mt-4 max-w-2xl text-pretty text-sm leading-relaxed text-white/70 sm:text-base">
-            Todos reciben una palabra secreta (en español) menos 1 impostor. Configura la ronda y reparte los roles uno por uno con
-            pantalla de seguridad.
-          </p>
+
+          <div className="mt-5 grid max-w-2xl gap-2 text-sm font-semibold text-white/70 sm:text-base">
+            <div className="flex items-start gap-2">
+              <EyeOff className="mt-0.5 h-4 w-4 shrink-0 text-white/50" />
+              Pasa el dispositivo y no mires la pantalla.
+            </div>
+            <div className="flex items-start gap-2">
+              <Search className="mt-0.5 h-4 w-4 shrink-0 text-white/50" />
+              Todos comparten una palabra… menos 1 impostor.
+            </div>
+            <div className="flex items-start gap-2">
+              <Users className="mt-0.5 h-4 w-4 shrink-0 text-white/50" />
+              Voten, eliminen y descubran quién miente.
+            </div>
+          </div>
         </div>
 
         <button
@@ -164,25 +180,29 @@ export default function SetupScreen() {
             </button>
           </div>
 
-          <div className="mt-4 flex items-center justify-between gap-4">
-            <label className="text-sm text-white/70">Segundos de reveal</label>
-            <input
+          <div className="mt-5">
+            <DurationSlider
+              label="Segundos de reveal"
               value={reveal.seconds}
-              onChange={(e) => setRevealSeconds(clampInt(Number(e.target.value), 2, 15))}
-              className="h-10 w-24 rounded-xl border border-white/10 bg-black/40 px-3 text-sm font-semibold text-white outline-none focus:border-lime-300/40"
-              inputMode="numeric"
+              min={2}
+              max={15}
+              step={1}
+              onChange={setRevealSeconds}
+              formatValue={(v) => `${v}s`}
             />
           </div>
 
           <div className="mt-6">
             <div className="text-sm font-semibold text-white/70">Discusión</div>
-            <div className="mt-2 flex items-center justify-between gap-4">
-              <label className="text-sm text-white/70">Duración (seg)</label>
-              <input
+            <div className="mt-3">
+              <DurationSlider
+                label="Duración"
                 value={discussion.secondsTotal}
-                onChange={(e) => setDiscussionSeconds(clampInt(Number(e.target.value), 30, 900))}
-                className="h-10 w-24 rounded-xl border border-white/10 bg-black/40 px-3 text-sm font-semibold text-white outline-none focus:border-lime-300/40"
-                inputMode="numeric"
+                min={30}
+                max={900}
+                step={15}
+                onChange={setDiscussionSeconds}
+                formatValue={formatClock}
               />
             </div>
           </div>
