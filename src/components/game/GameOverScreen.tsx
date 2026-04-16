@@ -16,16 +16,17 @@ export default function GameOverScreen() {
     return players.find((p) => p.id === gameOver.impostorId)?.name ?? "Impostor"
   }, [gameOver, players])
 
-  if (!gameOver) return null
-
-  const isCivilians = gameOver.winner === "civilians"
   const lastWinner = useRef<null | "civilians" | "impostor">(null)
+  const isCivilians = gameOver?.winner === "civilians"
 
   useEffect(() => {
+    if (!gameOver) return
     if (lastWinner.current === gameOver.winner) return
     lastWinner.current = gameOver.winner
     playSfx(isCivilians ? "victory" : "impostorWin")
-  }, [gameOver.winner, isCivilians])
+  }, [gameOver, isCivilians])
+
+  if (!gameOver) return null
 
   return (
     <div className="relative mx-auto flex min-h-[100svh] w-full max-w-6xl flex-col overflow-hidden px-6 py-10">
@@ -36,11 +37,11 @@ export default function GameOverScreen() {
 
       <div className="relative mx-auto w-full max-w-5xl">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="text-xs font-semibold uppercase tracking-[0.22em] text-white/55">Fin de la partida</div>
+          <div className="text-xs font-semibold uppercase tracking-[0.22em] text-fg/60">Fin de la partida</div>
           <div
             className={cn(
-              "inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-semibold",
-              isCivilians ? "border-lime-200/25 bg-lime-200/10 text-lime-100" : "border-rose-200/25 bg-rose-200/10 text-rose-100",
+              "badge",
+              isCivilians ? "border-accent/35 bg-accent/15 text-fg" : "border-danger/35 bg-danger/14 text-fg",
             )}
           >
             {isCivilians ? <Crown className="h-4 w-4" /> : <Skull className="h-4 w-4" />}
@@ -50,12 +51,14 @@ export default function GameOverScreen() {
 
         <div className="mt-4">
           <div
-            className={cn("among-title text-balance text-5xl font-black uppercase leading-[0.9] sm:text-7xl", isCivilians ? "among-title-win" : "among-title-lose")}
-            style={{ fontFamily: '"Bungee", system-ui, sans-serif' }}
+            className={cn(
+              "among-title font-display text-balance text-5xl font-black uppercase leading-[0.9] text-fg sm:text-7xl",
+              isCivilians ? "among-title-win" : "among-title-lose",
+            )}
           >
             {isCivilians ? "Ganaron los inocentes" : "Ganó el impostor"}
           </div>
-          <div className="mt-3 text-sm font-semibold text-white/70 sm:text-base">
+          <div className="mt-3 text-sm font-semibold text-fg/75 sm:text-base">
             {isCivilians ? (
               <span>El impostor era {impostorName}.</span>
             ) : (
@@ -74,15 +77,15 @@ export default function GameOverScreen() {
 
           <div className={cn("among-panel rounded-[28px] border p-6 sm:p-8", isCivilians ? "among-panel-win" : "among-panel-lose")}>
             <div className="grid gap-4 sm:grid-cols-2">
-              <div className="rounded-2xl border border-white/10 bg-black/35 p-5">
-                <div className="text-xs font-bold uppercase tracking-wide text-white/50">Palabra</div>
-                <div className="mt-2 text-2xl font-black text-white" style={{ fontFamily: '"Bungee", system-ui, sans-serif' }}>
+              <div className="rounded-2xl border border-border/12 bg-surface2/35 p-5">
+                <div className="text-xs font-bold uppercase tracking-wide text-fg/60">Palabra</div>
+                <div className="mt-2 font-display text-2xl font-black text-fg">
                   {gameOver.word}
                 </div>
               </div>
-              <div className="rounded-2xl border border-white/10 bg-black/35 p-5">
-                <div className="text-xs font-bold uppercase tracking-wide text-white/50">Impostor</div>
-                <div className="mt-2 text-2xl font-black text-white" style={{ fontFamily: '"Bungee", system-ui, sans-serif' }}>
+              <div className="rounded-2xl border border-border/12 bg-surface2/35 p-5">
+                <div className="text-xs font-bold uppercase tracking-wide text-fg/60">Impostor</div>
+                <div className="mt-2 font-display text-2xl font-black text-fg">
                   {impostorName}
                 </div>
               </div>
@@ -93,10 +96,10 @@ export default function GameOverScreen() {
                 type="button"
                 onClick={startGame}
                 className={cn(
-                  "inline-flex items-center justify-center gap-2 rounded-2xl border px-6 py-4 text-base font-black uppercase tracking-wide transition",
+                  "btn px-6 py-4 text-base",
                   isCivilians
-                    ? "border-lime-300/30 bg-lime-300/15 text-lime-100 hover:bg-lime-300/20"
-                    : "border-rose-300/30 bg-rose-300/15 text-rose-100 hover:bg-rose-300/20",
+                    ? "btn-primary"
+                    : "btn-danger",
                 )}
               >
                 <RefreshCw className="h-5 w-5" />
@@ -105,7 +108,7 @@ export default function GameOverScreen() {
               <button
                 type="button"
                 onClick={resetToSetup}
-                className="inline-flex items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/5 px-6 py-4 text-base font-black uppercase tracking-wide text-white/75 transition hover:bg-white/10"
+                className="btn px-6 py-4 text-base"
               >
                 <Settings className="h-5 w-5" />
                 Ajustes

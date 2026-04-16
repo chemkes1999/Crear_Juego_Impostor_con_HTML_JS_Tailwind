@@ -63,17 +63,17 @@ export default function DealScreen() {
     <div className="mx-auto flex min-h-[100svh] w-full max-w-4xl flex-col px-6 py-10">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <div className="text-xs font-semibold uppercase tracking-wide text-white/50">
+          <div className="text-xs font-semibold uppercase tracking-wide text-fg/55">
             Reparto {currentPlayerIndex + 1}/{players.length}
           </div>
-          <div className="mt-2 text-3xl font-black text-white sm:text-4xl" style={{ fontFamily: '"Bungee", system-ui, sans-serif' }}>
+          <div className="mt-2 font-display text-3xl font-black text-fg sm:text-4xl">
             {formatPlayerLabel(player.name, currentPlayerIndex)}
           </div>
         </div>
         <button
           type="button"
           onClick={resetToSetup}
-          className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm font-semibold text-white/70 transition hover:bg-white/10"
+          className="btn rounded-xl px-3 py-2 text-sm font-semibold tracking-normal"
         >
           <Undo2 className="h-4 w-4" />
           Ajustes
@@ -81,22 +81,22 @@ export default function DealScreen() {
       </div>
 
       <div className="mt-8 flex flex-1 flex-col justify-center">
-        <div className="rounded-3xl border border-white/10 bg-white/5 p-6 sm:p-10">
+        <div className="panel p-6 sm:p-10">
           {!isRevealed ? (
             <div className="text-center">
-              <div className="mx-auto inline-flex items-center gap-2 rounded-full border border-white/10 bg-black/30 px-3 py-1 text-xs font-semibold text-white/70">
-                <ShieldCheck className="h-4 w-4 text-lime-200" />
+              <div className="badge mx-auto">
+                <ShieldCheck className="h-4 w-4 text-accent" />
                 Pantalla segura
               </div>
-              <div className="mt-6 text-balance text-2xl font-black text-white sm:text-3xl">
-                Toma el dispositivo y toca <span className="text-lime-200">Revelar</span>.
+              <div className="mt-6 text-balance text-2xl font-black text-fg sm:text-3xl">
+                Toma el dispositivo y toca <span className="text-accent">Revelar</span>.
               </div>
-              <p className="mt-3 text-sm text-white/60">Asegúrate de que nadie más mire.</p>
+              <p className="mt-3 text-sm text-fg/65">Asegúrate de que nadie más mire.</p>
 
               <button
                 type="button"
                 onClick={revealRole}
-                className="mt-8 inline-flex items-center justify-center gap-2 rounded-2xl border border-lime-300/30 bg-lime-300/15 px-6 py-4 text-base font-black uppercase tracking-wide text-lime-100 transition hover:bg-lime-300/20"
+                className="btn btn-primary mt-8 px-6 py-4 text-base"
               >
                 <Eye className="h-5 w-5" />
                 Revelar
@@ -106,42 +106,42 @@ export default function DealScreen() {
             <div className="text-center">
               <div
                 className={cn(
-                  "mx-auto inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-semibold",
+                  "badge mx-auto",
                   isImpostor
-                    ? "border-fuchsia-300/40 bg-fuchsia-300/10 text-fuchsia-200"
-                    : "border-lime-300/40 bg-lime-300/10 text-lime-200",
+                    ? "border-accent2/35 bg-accent2/15 text-fg"
+                    : "border-accent/35 bg-accent/15 text-fg",
                 )}
               >
                 {isImpostor ? <ShieldAlert className="h-4 w-4" /> : <ShieldCheck className="h-4 w-4" />}
                 {isImpostor ? "IMPOSTOR" : "PALABRA"}
               </div>
 
-              <div className="mt-8 text-balance text-4xl font-black text-white sm:text-5xl" style={{ fontFamily: '"Bungee", system-ui, sans-serif' }}>
+              <div className="mt-8 font-display text-balance text-4xl font-black text-fg sm:text-5xl">
                 {isImpostor ? "IMPOSTOR" : secretWord ?? "—"}
               </div>
 
               {reveal.autoHide ? (
                 <div className="mx-auto mt-6 max-w-sm">
-                  <div className="h-2 overflow-hidden rounded-full bg-white/10">
+                  <div className="h-2 overflow-hidden rounded-full bg-surface/10">
                     <div
-                      className={cn("h-full", isImpostor ? "bg-fuchsia-300/70" : "bg-lime-300/70")}
+                      className={cn("h-full", isImpostor ? "bg-accent2/70" : "bg-accent/70")}
                       style={{ width: `${Math.round(((progress ?? 0) * 100) * 10) / 10}%` }}
                     />
                   </div>
-                  <div className="mt-2 text-xs font-semibold text-white/50">Auto-ocultar activado</div>
+                  <div className="mt-2 text-xs font-semibold text-fg/55">Auto-ocultar activado</div>
                 </div>
               ) : (
-                <div className="mt-6 text-xs font-semibold text-white/50">Auto-ocultar desactivado</div>
+                <div className="mt-6 text-xs font-semibold text-fg/55">Auto-ocultar desactivado</div>
               )}
 
               <button
                 type="button"
                 onClick={hideAndNext}
                 className={cn(
-                  "mt-8 inline-flex items-center justify-center gap-2 rounded-2xl border px-6 py-4 text-base font-black uppercase tracking-wide transition",
+                  "btn mt-8 px-6 py-4 text-base",
                   isImpostor
-                    ? "border-fuchsia-300/30 bg-fuchsia-300/15 text-fuchsia-100 hover:bg-fuchsia-300/20"
-                    : "border-lime-300/30 bg-lime-300/15 text-lime-100 hover:bg-lime-300/20",
+                    ? "btn-accent2"
+                    : "btn-primary",
                 )}
               >
                 <EyeOff className="h-5 w-5" />
