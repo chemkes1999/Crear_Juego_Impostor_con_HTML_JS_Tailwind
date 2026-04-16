@@ -81,6 +81,29 @@ body,
   }
 }
 
+@keyframes intro-question-drift {
+  0% {
+    background-position: 0px 0px;
+  }
+  50% {
+    background-position: -120px 80px;
+  }
+  100% {
+    background-position: 0px 0px;
+  }
+}
+
+.intro-questionmarks {
+  opacity: 0.45;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cg fill='white' fill-opacity='.14' font-family='Bungee,system-ui,sans-serif' font-size='56' font-weight='700'%3E%3Ctext x='24' y='78'%3E%3F%3C/text%3E%3Ctext x='148' y='64' font-size='44' fill-opacity='.11'%3E%3F%3C/text%3E%3Ctext x='88' y='156' font-size='50' fill-opacity='.1'%3E%3F%3C/text%3E%3Ctext x='32' y='212' font-size='40' fill-opacity='.1'%3E%3F%3C/text%3E%3Ctext x='170' y='206' font-size='58' fill-opacity='.08'%3E%3F%3C/text%3E%3C/g%3E%3C/svg%3E");
+  background-repeat: repeat;
+  background-size: 240px 240px;
+  animation: intro-question-drift 14000ms ease-in-out infinite;
+  mask-image: radial-gradient(900px circle at 40% 35%, rgba(0, 0, 0, 0.95), transparent 68%);
+  -webkit-mask-image: radial-gradient(900px circle at 40% 35%, rgba(0, 0, 0, 0.95), transparent 68%);
+}
+
 .intro-hero-noise {
   opacity: 0.3;
   mix-blend-mode: overlay;
@@ -165,6 +188,25 @@ body,
 
 .intro-eye-right .intro-eye-lid {
   animation-delay: -1800ms;
+}
+
+.intro-eye-sm {
+  width: 86px;
+  height: 58px;
+}
+
+.intro-eye-sm .intro-iris {
+  inset: 10px 15px;
+}
+
+.intro-eye-sm .intro-pupil {
+  width: 14px;
+  height: 14px;
+}
+
+.intro-eye-sm .intro-shine {
+  width: 12px;
+  height: 8px;
 }
 
 @keyframes gameover-panel-in {
@@ -282,6 +324,7 @@ body,
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .intro-questionmarks,
   .intro-hero-noise,
   .intro-eye,
   .intro-iris,

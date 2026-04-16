@@ -11,25 +11,47 @@ function formatClock(secondsTotal: number) {
   return `${minutes}:${seconds}`
 }
 
+function IntroEye({ className }: { className?: string }) {
+  return (
+    <div className={cn("intro-eye", className)}>
+      <div className="intro-iris">
+        <div className="intro-pupil" />
+        <div className="intro-shine" />
+      </div>
+      <div className="intro-eye-lid" />
+    </div>
+  )
+}
+
 function IntroEyes() {
   return (
     <div
       aria-hidden
       className="pointer-events-none absolute -right-6 top-1/2 flex -translate-y-1/2 items-center gap-5 opacity-90 sm:-right-10 sm:gap-7"
     >
-      <div className="intro-eye intro-eye-left">
-        <div className="intro-iris">
-          <div className="intro-pupil" />
-          <div className="intro-shine" />
-        </div>
-        <div className="intro-eye-lid" />
+      <IntroEye className="intro-eye-left" />
+      <IntroEye className="intro-eye-right" />
+    </div>
+  )
+}
+
+function IntroBackgroundEyes() {
+  return (
+    <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
+      <div className="absolute -left-10 top-8 opacity-25 blur-[0.25px]">
+        <IntroEye className="intro-eye-left intro-eye-sm" />
       </div>
-      <div className="intro-eye intro-eye-right">
-        <div className="intro-iris">
-          <div className="intro-pupil" />
-          <div className="intro-shine" />
-        </div>
-        <div className="intro-eye-lid" />
+      <div className="absolute left-10 top-40 opacity-20 blur-[0.45px]">
+        <IntroEye className="intro-eye-right intro-eye-sm" />
+      </div>
+      <div className="absolute right-28 top-16 opacity-18 blur-[0.6px]">
+        <IntroEye className="intro-eye-left intro-eye-sm" />
+      </div>
+      <div className="absolute -right-12 bottom-10 opacity-22 blur-[0.35px]">
+        <IntroEye className="intro-eye-right intro-eye-sm" />
+      </div>
+      <div className="absolute left-1/2 top-12 -translate-x-1/2 opacity-14 blur-[0.7px]">
+        <IntroEye className="intro-eye-right intro-eye-sm" />
       </div>
     </div>
   )
@@ -59,7 +81,9 @@ export default function SetupScreen() {
           aria-hidden
           className="pointer-events-none absolute inset-0 opacity-80 [background:radial-gradient(900px_circle_at_12%_18%,rgba(163,230,53,0.18),transparent_48%),radial-gradient(900px_circle_at_88%_28%,rgba(217,70,239,0.16),transparent_50%),radial-gradient(900px_circle_at_50%_115%,rgba(59,130,246,0.12),transparent_55%)]"
         />
+        <div aria-hidden className="intro-questionmarks pointer-events-none absolute inset-0" />
         <div aria-hidden className="intro-hero-noise pointer-events-none absolute inset-0" />
+        <IntroBackgroundEyes />
         <IntroEyes />
 
         <div className="relative flex items-start justify-between gap-4">
