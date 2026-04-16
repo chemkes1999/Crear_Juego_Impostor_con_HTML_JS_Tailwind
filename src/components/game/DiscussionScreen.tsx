@@ -1,7 +1,9 @@
 import { Play, Pause, RotateCcw, Undo2, ArrowRight, Users } from "lucide-react"
 import { useEffect, useMemo } from "react"
+import { hostPublishGameState } from "@/game/onlineActions"
 import { cn } from "@/lib/utils"
 import { useGameStore } from "@/store/gameStore"
+import { useRoomStore } from "@/store/roomStore"
 
 function formatClock(totalSeconds: number) {
   const m = Math.floor(totalSeconds / 60)
@@ -19,11 +21,25 @@ export default function DiscussionScreen() {
   const resetToSetup = useGameStore((s) => s.resetToSetup)
   const startVote = useGameStore((s) => s.startVote)
 
+  const mode = useRoomStore((s) => s.mode)
+  const roomStatus = useRoomStore((s) => s.status)
+  const isHost = useRoomStore((s) => s.isHost)
+  const roster = useRoomStore((s) => s.roster)
+  const publishPublicState = useRoomStore((s) => s.publishPublicState)
+  const sendPrivate = useRoomStore((s) => s.sendPrivate)
+
+  const roomApi = useMemo(() => ({ roster, publishPublicState, sendPrivate }), [publishPublicState, roster, sendPrivate])
+  const isOnline = mode === "online" && roomStatus === "in_room"
+
   useEffect(() => {
     if (!discussion.running) return
-    const id = window.setInterval(() => tickDiscussion(), 1000)
+    if (isOnline && !isHost) return
+    const id = window.setInterval(() => {
+      tickDiscussion()
+      if (isOnline && isHost) hostPublishGameState(roomApi)
+    }, 1000)
     return () => window.clearInterval(id)
-  }, [discussion.running, tickDiscussion])
+  }, [discussion.running, isHost, isOnline, roomApi, tickDiscussion])
 
   const clock = useMemo(() => formatClock(discussion.secondsLeft), [discussion.secondsLeft])
   const progress = useMemo(() => {
@@ -33,6 +49,30 @@ export default function DiscussionScreen() {
 
   const alive = useMemo(() => players.filter((p) => !p.isEliminated), [players])
   const eliminated = useMemo(() => players.filter((p) => p.isEliminated), [players])
+
+  const onToggle = useMemo(() => {
+    if (!isOnline || isHost) return () => {
+      toggleDiscussion()
+      if (isOnline && isHost) hostPublishGameState(roomApi)
+    }
+    return () => {}
+  }, [isHost, isOnline, roomApi, toggleDiscussion])
+
+  const onReset = useMemo(() => {
+    if (!isOnline || isHost) return () => {
+      resetDiscussion()
+      if (isOnline && isHost) hostPublishGameState(roomApi)
+    }
+    return () => {}
+  }, [isHost, isOnline, resetDiscussion, roomApi])
+
+  const onStartVote = useMemo(() => {
+    if (!isOnline || isHost) return () => {
+      startVote()
+      if (isOnline && isHost) hostPublishGameState(roomApi)
+    }
+    return () => {}
+  }, [isHost, isOnline, roomApi, startVote])
 
   return (
     <div className="mx-auto flex min-h-[100svh] w-full max-w-5xl flex-col px-6 py-10">
@@ -85,38 +125,32 @@ export default function DiscussionScreen() {
             </div>
           </div>
 
-          <div className="mt-8 flex flex-wrap justify-center gap-2">
-            <button
-              type="button"
-              onClick={toggleDiscussion}
-              className="btn btn-primary"
-            >
-              {discussion.running ? <Pause className="h-5 w-5" /> : <Play className="h-5 w-5" />}
-              {discussion.running ? "Pausar" : "Iniciar"}
-            </button>
-            <button
-              type="button"
-              onClick={resetDiscussion}
-              className="btn"
-            >
-              <RotateCcw className="h-5 w-5" />
-              Reiniciar
-            </button>
-          </div>
+          {isOnline && !isHost ? null : (
+            <div className="mt-8 flex flex-wrap justify-center gap-2">
+              <button type="button" onClick={onToggle} className="btn btn-primary">
+                {discussion.running ? <Pause className="h-5 w-5" /> : <Play className="h-5 w-5" />}
+                {discussion.running ? "Pausar" : "Iniciar"}
+              </button>
+              <button type="button" onClick={onReset} className="btn">
+                <RotateCcw className="h-5 w-5" />
+                Reiniciar
+              </button>
+            </div>
+          )}
 
-          <button
-            type="button"
-            onClick={startVote}
-            className={cn(
-              "btn mt-6 w-full px-5 py-4 text-base",
-              discussion.secondsLeft === 0
-                ? "btn-accent2"
-                : "",
-            )}
-          >
-            Ir a votación
-            <ArrowRight className="ml-2 inline h-5 w-5" />
-          </button>
+          {isOnline && !isHost ? null : (
+            <button
+              type="button"
+              onClick={onStartVote}
+              className={cn(
+                "btn mt-6 w-full px-5 py-4 text-base",
+                discussion.secondsLeft === 0 ? "btn-accent2" : "",
+              )}
+            >
+              Ir a votación
+              <ArrowRight className="ml-2 inline h-5 w-5" />
+            </button>
+          )}
         </section>
 
         <section className="panel panel-pad">

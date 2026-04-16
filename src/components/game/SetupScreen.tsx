@@ -1,9 +1,10 @@
-import { EyeOff, Moon, Search, Sun, Users } from "lucide-react"
+import { EyeOff, Moon, Search, Sun, Users, Wifi } from "lucide-react"
 import { useTheme } from "@/hooks/useTheme"
 import { cn } from "@/lib/utils"
 import CategoryPicker from "@/components/game/CategoryPicker"
 import DurationSlider from "@/components/game/DurationSlider"
 import { useGameStore } from "@/store/gameStore"
+import { useRoomStore } from "@/store/roomStore"
 
 function formatClock(secondsTotal: number) {
   const minutes = Math.floor(secondsTotal / 60)
@@ -59,6 +60,7 @@ function IntroBackgroundEyes() {
 
 export default function SetupScreen() {
   const { isDark, toggleTheme } = useTheme()
+  const setMode = useRoomStore((s) => s.setMode)
 
   const players = useGameStore((s) => s.players)
   const setPlayerCount = useGameStore((s) => s.setPlayerCount)
@@ -127,6 +129,14 @@ export default function SetupScreen() {
           >
             {isDark ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
             {isDark ? "Oscuro" : "Claro"}
+          </button>
+          <button
+            type="button"
+            onClick={() => setMode("online")}
+            className="btn mt-1 rounded-xl px-3 py-2 text-sm font-semibold tracking-normal"
+          >
+            <Wifi className="h-4 w-4" />
+            Online
           </button>
         </div>
       </section>

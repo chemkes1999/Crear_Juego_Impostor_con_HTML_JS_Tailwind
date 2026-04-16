@@ -3,6 +3,19 @@
 ## Summary
 Habilitar un modo **online** para que una persona cree una sala, comparta un **código numérico de 6 dígitos**, y otras personas se unan desde sus dispositivos. La sincronización se hace con **WebSockets** usando un servidor Node sencillo que actúa como “relay” (enruta mensajes), mientras el **host** mantiene la lógica de juego y emite snapshots de estado para que todos vean la misma fase/tiempos.
 
+## Viabilidad (qué asegura que “funcione”)
+- **Sí es viable** técnicamente: WebSocket es el patrón estándar para “salas” con código + presencia + eventos en tiempo real.
+- Lo que determina que funcione en teléfonos/redes reales no es el frontend, sino que exista un **servidor WebSocket accesible públicamente** (un dominio/IP + puerto) al que todos los dispositivos puedan conectarse.
+- Condiciones mínimas para producción:
+  - Si el frontend se sirve por **HTTPS**, el WebSocket debe ser **WSS** (si no, el navegador bloquea la conexión por “mixed content”).
+  - El hosting debe permitir **conexiones persistentes** (no solo HTTP request/response) y no cortar la conexión agresivamente.
+  - Debe existir una configuración de **origen permitido**/validación `Origin` en el server (para evitar conexiones no deseadas).
+- Lo que este plan “asegura” es:
+  - Un protocolo y arquitectura consistentes con el repo actual.
+  - Un flujo verificable localmente (2 pestañas/navegadores) y luego desplegable.
+  - Validaciones y manejo de desconexiones mínimos para una V1.
+  - No se puede prometer 100% en todos los entornos hasta hacer el despliegue real (depende del proveedor/red), pero el diseño es el correcto y las verificaciones cubren los fallos típicos.
+
 ## Current State Analysis
 - La app actual es **frontend-only** (Vite + React + TypeScript) y el juego es 100% local; no existe backend. Ver [Arquitectura-tecnica-juego-impostor.md](file:///workspace/.trae/documents/Arquitectura-tecnica-juego-impostor.md#L11-L16).
 - El estado del juego vive en Zustand en [gameStore.ts](file:///workspace/src/store/gameStore.ts) con fases: `setup | deal | discussion | vote | elimination | gameover`.
@@ -167,4 +180,3 @@ Habilitar un modo **online** para que una persona cree una sala, comparta un **c
     - Iniciar partida → cada jugador recibe su rol/palabra de forma privada
     - Discusión basada en `endsAt` se mantiene sincronizada entre pestañas
     - Votación: cada jugador envía voto, host calcula y publica resultado
-

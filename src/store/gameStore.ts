@@ -50,6 +50,7 @@ type GameState = {
   difficulty: WordDifficulty
   secretWord: string | null
   impostorId: string | null
+  isImpostorLocal: boolean | null
   currentPlayerIndex: number
   isRevealed: boolean
   reveal: RevealOptions
@@ -60,15 +61,19 @@ type GameState = {
 
   setPlayerCount: (count: number) => void
   setPlayerName: (index: number, name: string) => void
+  setPlayersFromRoster: (roster: Array<{ playerId: string; name: string }>) => void
   toggleCategory: (category: WordCategory) => void
   setDifficulty: (difficulty: WordDifficulty) => void
   setRevealAutoHide: (value: boolean) => void
   setRevealSeconds: (seconds: number) => void
   setDiscussionSeconds: (seconds: number) => void
   startGame: () => void
+  startOnlineDiscussion: () => void
   revealRole: () => void
   hideAndNext: () => void
   resetToSetup: () => void
+  applyPublicState: (state: unknown) => void
+  applyPrivate: (payload: unknown) => void
   toggleDiscussion: () => void
   resetDiscussion: () => void
   tickDiscussion: () => void
@@ -76,6 +81,7 @@ type GameState = {
   startVoteTurn: () => void
   setVoteTarget: (playerId: string) => void
   submitVote: () => void
+  applyOnlineVoteSelection: (voterId: string, targetId: string) => void
   continueAfterElimination: () => void
 }
 
@@ -163,6 +169,7 @@ export const useGameStore = create<GameState>((set, get) => ({
   difficulty: "basic",
   secretWord: null,
   impostorId: null,
+  isImpostorLocal: null,
   currentPlayerIndex: 0,
   isRevealed: false,
   reveal: { autoHide: true, seconds: 5 },
@@ -182,6 +189,13 @@ export const useGameStore = create<GameState>((set, get) => ({
       if (!current) return s
       players[index] = { ...current, name: name.trim() || `Jugador ${index + 1}` }
       return { ...s, players }
+    })
+  },
+  setPlayersFromRoster: (roster) => {
+    set((s) => {
+      const nextPlayers = roster.map((p) => ({ id: p.playerId, name: p.name, isEliminated: false }))
+      if (nextPlayers.length < 3) return s
+      return { ...s, players: nextPlayers }
     })
   },
   toggleCategory: (category) => {
@@ -213,6 +227,7 @@ export const useGameStore = create<GameState>((set, get) => ({
       players: resetPlayers,
       secretWord: word,
       impostorId,
+      isImpostorLocal: null,
       currentPlayerIndex: 0,
       isRevealed: false,
       vote: null,
@@ -221,6 +236,16 @@ export const useGameStore = create<GameState>((set, get) => ({
       discussion: { ...prev.discussion, secondsLeft: prev.discussion.secondsTotal, running: false },
     }))
   },
+  startOnlineDiscussion: () =>
+    set((s) => ({
+      ...s,
+      phase: "discussion",
+      currentPlayerIndex: 0,
+      isRevealed: false,
+      vote: null,
+      elimination: null,
+      discussion: { ...s.discussion, secondsLeft: s.discussion.secondsTotal, running: false },
+    })),
   revealRole: () => set({ isRevealed: true }),
   hideAndNext: () => {
     set((s) => {
@@ -245,6 +270,7 @@ export const useGameStore = create<GameState>((set, get) => ({
       roundNumber: 1,
       secretWord: null,
       impostorId: null,
+      isImpostorLocal: null,
       currentPlayerIndex: 0,
       isRevealed: false,
       vote: null,
@@ -252,6 +278,34 @@ export const useGameStore = create<GameState>((set, get) => ({
       gameOver: null,
       discussion: { ...s.discussion, secondsLeft: s.discussion.secondsTotal, running: false },
     })),
+  applyPublicState: (state) =>
+    set((s) => {
+      if (!state || typeof state !== "object") return s
+      const next = state as Partial<GameState>
+      return {
+        ...s,
+        phase: next.phase ?? s.phase,
+        roundNumber: next.roundNumber ?? s.roundNumber,
+        players: Array.isArray(next.players) ? next.players : s.players,
+        categories: Array.isArray(next.categories) ? next.categories : s.categories,
+        difficulty: (next.difficulty ?? s.difficulty) as WordDifficulty,
+        currentPlayerIndex: next.currentPlayerIndex ?? s.currentPlayerIndex,
+        isRevealed: next.isRevealed ?? s.isRevealed,
+        reveal: (next.reveal ?? s.reveal) as RevealOptions,
+        discussion: (next.discussion ?? s.discussion) as DiscussionState,
+        vote: (next.vote ?? s.vote) as VoteState | null,
+        elimination: (next.elimination ?? s.elimination) as EliminationResult | null,
+        gameOver: (next.gameOver ?? s.gameOver) as GameOverState | null,
+      }
+    }),
+  applyPrivate: (payload) =>
+    set((s) => {
+      if (!payload || typeof payload !== "object") return s
+      const p = payload as { secretWord?: unknown; isImpostor?: unknown }
+      const word = typeof p.secretWord === "string" ? p.secretWord : null
+      const isImpostor = typeof p.isImpostor === "boolean" ? p.isImpostor : null
+      return { ...s, secretWord: word, isImpostorLocal: isImpostor }
+    }),
   toggleDiscussion: () => set((s) => ({ ...s, discussion: { ...s.discussion, running: !s.discussion.running } })),
   resetDiscussion: () =>
     set((s) => ({ ...s, discussion: { ...s.discussion, running: false, secondsLeft: s.discussion.secondsTotal } })),
@@ -305,6 +359,70 @@ export const useGameStore = create<GameState>((set, get) => ({
           },
         }
       }
+
+      const finalVote: VoteState = {
+        ...s.vote,
+        selectionsByVoterId: nextSelections,
+        currentSelectionId: null,
+        isReady: true,
+      }
+
+      const result = computeVoteResult({ players: s.players, impostorId: s.impostorId, vote: finalVote })
+
+      if (result.type === "tie") {
+        return { ...s, phase: "elimination", vote: null, elimination: result }
+      }
+
+      const nextPlayers = s.players.map((p) => (p.id === result.playerId ? { ...p, isEliminated: true } : p))
+
+      if (result.wasImpostor && s.secretWord) {
+        return {
+          ...s,
+          phase: "gameover",
+          players: nextPlayers,
+          vote: null,
+          elimination: null,
+          gameOver: { winner: "civilians", word: s.secretWord, impostorId: s.impostorId },
+          discussion: { ...s.discussion, running: false },
+        }
+      }
+
+      const aliveCount = getAlivePlayers(nextPlayers).length
+      if (aliveCount <= 2 && s.secretWord) {
+        return {
+          ...s,
+          phase: "gameover",
+          players: nextPlayers,
+          vote: null,
+          elimination: null,
+          gameOver: { winner: "impostor", word: s.secretWord, impostorId: s.impostorId },
+          discussion: { ...s.discussion, running: false },
+        }
+      }
+
+      return {
+        ...s,
+        phase: "elimination",
+        players: nextPlayers,
+        vote: null,
+        elimination: result,
+        discussion: { ...s.discussion, running: false },
+      }
+    }),
+  applyOnlineVoteSelection: (voterId, targetId) =>
+    set((s) => {
+      if (s.phase !== "vote" || !s.vote) return s
+      if (!s.impostorId) return s
+      if (!s.vote.voterIds.includes(voterId)) return s
+      if (!s.vote.eligibleIds.includes(targetId)) return s
+      if (voterId === targetId) return s
+
+      const aliveIds = new Set(getAlivePlayers(s.players).map((p) => p.id))
+      if (!aliveIds.has(voterId) || !aliveIds.has(targetId)) return s
+
+      const nextSelections = { ...s.vote.selectionsByVoterId, [voterId]: targetId }
+      const isComplete = s.vote.voterIds.every((id) => Boolean(nextSelections[id]))
+      if (!isComplete) return { ...s, vote: { ...s.vote, selectionsByVoterId: nextSelections } }
 
       const finalVote: VoteState = {
         ...s.vote,

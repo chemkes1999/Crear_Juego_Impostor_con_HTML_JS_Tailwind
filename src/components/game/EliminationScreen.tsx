@@ -1,14 +1,26 @@
 import { ArrowRight, Scale, UserX } from "lucide-react"
 import { useEffect, useMemo, useRef } from "react"
+import { hostPublishGameState } from "@/game/onlineActions"
 import { playSfx } from "@/lib/sfx"
 import { TenebrousEyes, VictoryStar } from "@/components/game/MysterySigils"
 import { useGameStore } from "@/store/gameStore"
+import { useRoomStore } from "@/store/roomStore"
 
 export default function EliminationScreen() {
   const roundNumber = useGameStore((s) => s.roundNumber)
   const players = useGameStore((s) => s.players)
   const elimination = useGameStore((s) => s.elimination)
   const continueAfterElimination = useGameStore((s) => s.continueAfterElimination)
+
+  const mode = useRoomStore((s) => s.mode)
+  const roomStatus = useRoomStore((s) => s.status)
+  const isHost = useRoomStore((s) => s.isHost)
+  const roster = useRoomStore((s) => s.roster)
+  const publishPublicState = useRoomStore((s) => s.publishPublicState)
+  const sendPrivate = useRoomStore((s) => s.sendPrivate)
+
+  const roomApi = useMemo(() => ({ roster, publishPublicState, sendPrivate }), [publishPublicState, roster, sendPrivate])
+  const isOnline = mode === "online" && roomStatus === "in_room"
 
   const byId = useMemo(() => new Map(players.map((p) => [p.id, p])), [players])
   const lastDeathId = useRef<string | null>(null)
@@ -22,6 +34,12 @@ export default function EliminationScreen() {
   }, [eliminatedId])
 
   if (!elimination) return null
+
+  const onContinue = () => {
+    if (isOnline && !isHost) return
+    continueAfterElimination()
+    if (isOnline && isHost) hostPublishGameState(roomApi)
+  }
 
   return (
     <div className="relative mx-auto flex min-h-[100svh] w-full max-w-6xl flex-col overflow-hidden px-6 py-10">
@@ -78,14 +96,12 @@ export default function EliminationScreen() {
                   })}
                 </div>
 
-                <button
-                  type="button"
-                  onClick={continueAfterElimination}
-                  className="btn btn-primary mt-8 w-full px-6 py-4 text-base"
-                >
-                  Re-votar
-                  <ArrowRight className="h-5 w-5" />
-                </button>
+                {isOnline && !isHost ? null : (
+                  <button type="button" onClick={onContinue} className="btn btn-primary mt-8 w-full px-6 py-4 text-base">
+                    Re-votar
+                    <ArrowRight className="h-5 w-5" />
+                  </button>
+                )}
               </div>
             ) : (
               <div>
@@ -95,14 +111,12 @@ export default function EliminationScreen() {
                 </div>
                 <div className="mt-3 text-sm text-fg/65">Siguiente ronda: discutan de nuevo y vuelvan a votar.</div>
 
-                <button
-                  type="button"
-                  onClick={continueAfterElimination}
-                  className="btn mt-8 w-full px-6 py-4 text-base"
-                >
-                  Siguiente ronda
-                  <ArrowRight className="h-5 w-5" />
-                </button>
+                {isOnline && !isHost ? null : (
+                  <button type="button" onClick={onContinue} className="btn mt-8 w-full px-6 py-4 text-base">
+                    Siguiente ronda
+                    <ArrowRight className="h-5 w-5" />
+                  </button>
+                )}
               </div>
             )}
           </div>

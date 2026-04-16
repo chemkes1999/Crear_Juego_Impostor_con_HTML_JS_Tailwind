@@ -1,15 +1,26 @@
 import { Crown, Skull, RefreshCw, Settings } from "lucide-react"
 import { useEffect, useMemo, useRef } from "react"
+import { hostPublishGameState, hostStartGameFromLobby } from "@/game/onlineActions"
 import { cn } from "@/lib/utils"
 import { playSfx } from "@/lib/sfx"
 import { TenebrousEyes, VictoryStar } from "@/components/game/MysterySigils"
 import { useGameStore } from "@/store/gameStore"
+import { useRoomStore } from "@/store/roomStore"
 
 export default function GameOverScreen() {
   const gameOver = useGameStore((s) => s.gameOver)
   const players = useGameStore((s) => s.players)
-  const startGame = useGameStore((s) => s.startGame)
   const resetToSetup = useGameStore((s) => s.resetToSetup)
+
+  const mode = useRoomStore((s) => s.mode)
+  const roomStatus = useRoomStore((s) => s.status)
+  const isHost = useRoomStore((s) => s.isHost)
+  const roster = useRoomStore((s) => s.roster)
+  const publishPublicState = useRoomStore((s) => s.publishPublicState)
+  const sendPrivate = useRoomStore((s) => s.sendPrivate)
+
+  const roomApi = useMemo(() => ({ roster, publishPublicState, sendPrivate }), [publishPublicState, roster, sendPrivate])
+  const isOnline = mode === "online" && roomStatus === "in_room"
 
   const impostorName = useMemo(() => {
     if (!gameOver) return null
@@ -97,27 +108,32 @@ export default function GameOverScreen() {
             </div>
 
             <div className="mt-6 grid gap-2 sm:grid-cols-2">
-              <button
-                type="button"
-                onClick={startGame}
-                className={cn(
-                  "btn px-6 py-4 text-base",
-                  isCivilians
-                    ? "btn-primary"
-                    : "btn-danger",
-                )}
-              >
-                <RefreshCw className="h-5 w-5" />
-                Nueva partida
-              </button>
-              <button
-                type="button"
-                onClick={resetToSetup}
-                className="btn px-6 py-4 text-base"
-              >
-                <Settings className="h-5 w-5" />
-                Ajustes
-              </button>
+              {isOnline && !isHost ? null : (
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (isOnline) hostStartGameFromLobby(roomApi)
+                    else useGameStore.getState().startGame()
+                  }}
+                  className={cn("btn px-6 py-4 text-base", isCivilians ? "btn-primary" : "btn-danger")}
+                >
+                  <RefreshCw className="h-5 w-5" />
+                  Nueva partida
+                </button>
+              )}
+              {isOnline && !isHost ? null : (
+                <button
+                  type="button"
+                  onClick={() => {
+                    resetToSetup()
+                    if (isOnline) hostPublishGameState(roomApi)
+                  }}
+                  className="btn px-6 py-4 text-base"
+                >
+                  <Settings className="h-5 w-5" />
+                  Ajustes
+                </button>
+              )}
             </div>
           </div>
         </div>
