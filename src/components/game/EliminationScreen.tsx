@@ -3,12 +3,13 @@ import { useEffect, useMemo, useRef } from "react"
 import { playSfx } from "@/lib/sfx"
 import { TenebrousEyes, VictoryStar } from "@/components/game/MysterySigils"
 import { useGameStore } from "@/store/gameStore"
+import { useWsStore } from "@/store/wsStore"
 
 export default function EliminationScreen() {
   const roundNumber = useGameStore((s) => s.roundNumber)
   const players = useGameStore((s) => s.players)
   const elimination = useGameStore((s) => s.elimination)
-  const continueAfterElimination = useGameStore((s) => s.continueAfterElimination)
+  const send = useWsStore((s) => s.send)
 
   const byId = useMemo(() => new Map(players.map((p) => [p.id, p])), [players])
   const lastDeathId = useRef<string | null>(null)
@@ -80,7 +81,7 @@ export default function EliminationScreen() {
 
                 <button
                   type="button"
-                  onClick={continueAfterElimination}
+                  onClick={() => send({ type: "continueAfterElimination", payload: null })}
                   className="btn btn-primary mt-8 w-full px-6 py-4 text-base"
                 >
                   Re-votar
@@ -97,7 +98,7 @@ export default function EliminationScreen() {
 
                 <button
                   type="button"
-                  onClick={continueAfterElimination}
+                  onClick={() => send({ type: "continueAfterElimination", payload: null })}
                   className="btn mt-8 w-full px-6 py-4 text-base"
                 >
                   Siguiente ronda

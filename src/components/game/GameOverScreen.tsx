@@ -4,12 +4,12 @@ import { cn } from "@/lib/utils"
 import { playSfx } from "@/lib/sfx"
 import { TenebrousEyes, VictoryStar } from "@/components/game/MysterySigils"
 import { useGameStore } from "@/store/gameStore"
+import { useWsStore } from "@/store/wsStore"
 
 export default function GameOverScreen() {
   const gameOver = useGameStore((s) => s.gameOver)
   const players = useGameStore((s) => s.players)
-  const startGame = useGameStore((s) => s.startGame)
-  const resetToSetup = useGameStore((s) => s.resetToSetup)
+  const send = useWsStore((s) => s.send)
 
   const impostorName = useMemo(() => {
     if (!gameOver) return null
@@ -99,12 +99,10 @@ export default function GameOverScreen() {
             <div className="mt-6 grid gap-2 sm:grid-cols-2">
               <button
                 type="button"
-                onClick={startGame}
+                onClick={() => send({ type: "startNewGame", payload: null })}
                 className={cn(
                   "btn px-6 py-4 text-base",
-                  isCivilians
-                    ? "btn-primary"
-                    : "btn-danger",
+                  isCivilians ? "btn-primary" : "btn-danger",
                 )}
               >
                 <RefreshCw className="h-5 w-5" />
@@ -112,7 +110,7 @@ export default function GameOverScreen() {
               </button>
               <button
                 type="button"
-                onClick={resetToSetup}
+                onClick={() => send({ type: "resetToSetup", payload: null })}
                 className="btn px-6 py-4 text-base"
               >
                 <Settings className="h-5 w-5" />

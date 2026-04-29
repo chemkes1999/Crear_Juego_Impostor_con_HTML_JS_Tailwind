@@ -1,4 +1,4 @@
-type SfxName = "victory" | "impostorWin" | "death"
+type SfxName = "victory" | "impostorWin" | "death" | "chatMessage" | "voteSubmitted" | "phaseChange" | "playerJoined" | "playerLeft" | "countdownTick" | "gameStarted" | "revealWord"
 
 let audioContext: AudioContext | null = null
 let master: GainNode | null = null
@@ -441,7 +441,224 @@ export function playSfx(name: SfxName) {
     if (name === "victory") playVictory(a.ctx, a.master)
     if (name === "impostorWin") playImpostorWin(a.ctx, a.master)
     if (name === "death") playDeath(a.ctx, a.master)
+    if (name === "chatMessage") playChatMessage(a.ctx, a.master)
+    if (name === "voteSubmitted") playVoteSubmitted(a.ctx, a.master)
+    if (name === "phaseChange") playPhaseChange(a.ctx, a.master)
+    if (name === "playerJoined") playPlayerJoined(a.ctx, a.master)
+    if (name === "playerLeft") playPlayerLeft(a.ctx, a.master)
+    if (name === "countdownTick") playCountdownTick(a.ctx, a.master)
+    if (name === "gameStarted") playGameStarted(a.ctx, a.master)
+    if (name === "revealWord") playRevealWord(a.ctx, a.master)
   } catch (err) {
     if (import.meta.env.DEV) console.error(err)
   }
+}
+
+function playChatMessage(ctx: AudioContext, out: AudioNode) {
+  const t0 = now(ctx)
+
+  const osc = ctx.createOscillator()
+  const g = ctx.createGain()
+  const filter = ctx.createBiquadFilter()
+
+  osc.type = "sine"
+  osc.frequency.setValueAtTime(1200, t0)
+  osc.frequency.exponentialRampToValueAtTime(800, t0 + 0.08)
+
+  filter.type = "lowpass"
+  filter.frequency.setValueAtTime(2000, t0)
+
+  osc.connect(filter)
+  filter.connect(g)
+  g.connect(out)
+
+  env(g, t0, 0.002, 0.02, 0.1, 0.06, 0.25)
+  osc.start(t0)
+  osc.stop(t0 + 0.1)
+}
+
+function playVoteSubmitted(ctx: AudioContext, out: AudioNode) {
+  const t0 = now(ctx)
+
+  for (let i = 0; i < 2; i++) {
+    const osc = ctx.createOscillator()
+    const g = ctx.createGain()
+
+    osc.type = i === 0 ? "sine" : "triangle"
+    osc.frequency.setValueAtTime(i === 0 ? 600 : 900, t0 + i * 0.06)
+
+    osc.connect(g)
+    g.connect(out)
+
+    env(g, t0 + i * 0.06, 0.003, 0.04, 0.2, 0.05, 0.4)
+    osc.start(t0 + i * 0.06)
+    osc.stop(t0 + i * 0.06 + 0.12)
+  }
+}
+
+function playPhaseChange(ctx: AudioContext, out: AudioNode) {
+  const t0 = now(ctx)
+
+  const sweep = ctx.createOscillator()
+  const sweepGain = ctx.createGain()
+  const sweepFilter = ctx.createBiquadFilter()
+
+  sweep.type = "sine"
+  sweep.frequency.setValueAtTime(300, t0)
+  sweep.frequency.exponentialRampToValueAtTime(1200, t0 + 0.15)
+
+  sweepFilter.type = "lowpass"
+  sweepFilter.frequency.setValueAtTime(3000, t0)
+
+  sweep.connect(sweepFilter)
+  sweepFilter.connect(sweepGain)
+  sweepGain.connect(out)
+
+  env(sweepGain, t0, 0.005, 0.08, 0.3, 0.12, 0.5)
+  sweep.start(t0)
+  sweep.stop(t0 + 0.25)
+
+  const sparkle = ctx.createOscillator()
+  const sparkleGain = ctx.createGain()
+
+  sparkle.type = "sine"
+  sparkle.frequency.setValueAtTime(2000, t0 + 0.12)
+
+  sparkle.connect(sparkleGain)
+  sparkleGain.connect(out)
+
+  env(sparkleGain, t0 + 0.12, 0.002, 0.03, 0.15, 0.08, 0.3)
+  sparkle.start(t0 + 0.12)
+  sparkle.stop(t0 + 0.35)
+}
+
+function playPlayerJoined(ctx: AudioContext, out: AudioNode) {
+  const t0 = now(ctx)
+
+  const notes = [523.25, 659.25, 783.99]
+  notes.forEach((freq, i) => {
+    const osc = ctx.createOscillator()
+    const g = ctx.createGain()
+
+    osc.type = "triangle"
+    osc.frequency.setValueAtTime(freq, t0)
+
+    osc.connect(g)
+    g.connect(out)
+
+    const start = t0 + i * 0.1
+    env(g, start, 0.005, 0.06, 0.3, 0.08, 0.5)
+    osc.start(start)
+    osc.stop(start + 0.18)
+  })
+}
+
+function playPlayerLeft(ctx: AudioContext, out: AudioNode) {
+  const t0 = now(ctx)
+
+  const osc = ctx.createOscillator()
+  const g = ctx.createGain()
+
+  osc.type = "sine"
+  osc.frequency.setValueAtTime(600, t0)
+  osc.frequency.exponentialRampToValueAtTime(200, t0 + 0.3)
+
+  osc.connect(g)
+  g.connect(out)
+
+  env(g, t0, 0.01, 0.1, 0.1, 0.25, 0.35)
+  osc.start(t0)
+  osc.stop(t0 + 0.35)
+}
+
+function playCountdownTick(ctx: AudioContext, out: AudioNode) {
+  const t0 = now(ctx)
+
+  const osc = ctx.createOscillator()
+  const g = ctx.createGain()
+
+  osc.type = "square"
+  osc.frequency.setValueAtTime(1000, t0)
+
+  osc.connect(g)
+  g.connect(out)
+
+  env(g, t0, 0.001, 0.015, 0.01, 0.03, 0.15)
+  osc.start(t0)
+  osc.stop(t0 + 0.06)
+}
+
+function playGameStarted(ctx: AudioContext, out: AudioNode) {
+  const t0 = now(ctx)
+
+  const drone = ctx.createOscillator()
+  const droneGain = ctx.createGain()
+  const droneFilter = ctx.createBiquadFilter()
+
+  drone.type = "sawtooth"
+  drone.frequency.setValueAtTime(80, t0)
+  drone.frequency.exponentialRampToValueAtTime(120, t0 + 0.5)
+
+  droneFilter.type = "lowpass"
+  droneFilter.frequency.setValueAtTime(400, t0)
+  droneFilter.frequency.exponentialRampToValueAtTime(2000, t0 + 0.3)
+
+  drone.connect(droneFilter)
+  droneFilter.connect(droneGain)
+  droneGain.connect(out)
+
+  env(droneGain, t0, 0.05, 0.3, 0.4, 0.2, 0.6)
+  drone.start(t0)
+  drone.stop(t0 + 0.6)
+
+  const stab = ctx.createOscillator()
+  const stabGain = ctx.createGain()
+
+  stab.type = "square"
+  stab.frequency.setValueAtTime(440, t0 + 0.1)
+
+  stab.connect(stabGain)
+  stabGain.connect(out)
+
+  env(stabGain, t0 + 0.1, 0.005, 0.08, 0.2, 0.15, 0.5)
+  stab.start(t0 + 0.1)
+  stab.stop(t0 + 0.4)
+
+  for (let i = 0; i < 3; i++) {
+    const click = ctx.createOscillator()
+    const clickGain = ctx.createGain()
+
+    click.type = "sine"
+    click.frequency.setValueAtTime(1500 + i * 500, t0 + 0.3 + i * 0.08)
+
+    click.connect(clickGain)
+    clickGain.connect(out)
+
+    env(clickGain, t0 + 0.3 + i * 0.08, 0.002, 0.02, 0.1, 0.05, 0.35)
+    click.start(t0 + 0.3 + i * 0.08)
+    click.stop(t0 + 0.3 + i * 0.08 + 0.1)
+  }
+}
+
+function playRevealWord(ctx: AudioContext, out: AudioNode) {
+  const t0 = now(ctx)
+
+  const osc = ctx.createOscillator()
+  const g = ctx.createGain()
+  const filter = ctx.createBiquadFilter()
+
+  osc.type = "sine"
+  osc.frequency.setValueAtTime(400, t0)
+  osc.frequency.exponentialRampToValueAtTime(1600, t0 + 0.2)
+
+  filter.type = "lowpass"
+  filter.frequency.setValueAtTime(2500, t0)
+
+  osc.connect(filter)
+  filter.connect(g)
+  g.connect(out)
+
+  env(g, t0, 0.01, 0.1, 0.4, 0.15, 0.5)
+  osc.start(t0)
+  osc.stop(t0 + 0.3)
 }
